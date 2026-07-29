@@ -1,134 +1,173 @@
-# Portal Tekhum — Subbagian Teknis dan Hukum KPU Kabupaten
+# SI-Tekhum — Sistem Informasi Teknis dan Hukum KPU Kabupaten
 
-SPA (Single Page Application) internal untuk menampung fitur, alat kerja, dan
-visualisasi data Divisi Teknis Penyelenggaraan dan Divisi Hukum/JDIH,
-dirancang agar mudah tumbuh: menambah fitur baru cukup dengan menambah file
-komponen dan mendaftarkannya di satu file konfigurasi.
+SPA (Single Page Application) internal untuk Subbagian Teknis dan Hukum,
+dengan 4 menu utama (Kinerja, Teknis, Hukum, Pleno) yang masing-masing punya
+sub-menu dinamis. Dirancang agar menambah sub-menu baru cukup lewat data —
+tanpa membuat file baru, kecuali dibutuhkan tampilan/logika khusus.
 
-## Tech stack & alasan pemilihan
+## Struktur navigasi saat ini
 
-| Layer      | Pilihan                     | Alasan |
-|------------|------------------------------|--------|
-| Build tool | **Vite**                    | Dev server sangat cepat, build teroptimasi, output statis siap deploy ke mana saja |
-| UI         | **React**                   | Sistem komponen matang, cocok untuk dashboard yang fitur-fiturnya terus bertambah |
-| Routing    | **React Router (HashRouter)** | SPA berpindah halaman tanpa reload; `HashRouter` dipilih agar refresh URL tetap berfungsi di GitHub Pages tanpa konfigurasi server tambahan |
-| Styling    | **Tailwind CSS**             | Konsisten, tidak perlu menulis CSS terpisah per komponen, mudah dipertahankan banyak kontributor |
-| Ikon       | **lucide-react**             | Set ikon konsisten, ringan, tree-shakeable |
+```
+Beranda
+Kinerja
+├── Rencana Kinerja
+└── Laporan Kinerja
+Teknis
+├── Hasil Pemilu 2024
+├── Hasil Pemilihan 2024
+└── Laporan Pemutakhiran Data Partai Politik Berkelanjutan
+Hukum
+├── Dokumen BA
+├── Dokumen SK
+├── Laporan JDIH
+├── Laporan SPIP
+├── JDIH
+├── SPIP (Sip Sekali)
+├── Medsos JDIH
+├── Silakon
+└── Simoku
+Pleno
+└── SIKAP
+```
 
-**Kenapa bukan "Tailwind + Vanilla JS"?** Untuk situs statis kecil itu valid,
-tetapi karena Anda menyebutkan fitur akan terus bertambah (dashboard,
-simulasi, arsip dokumen, dll — masing-masing dengan state sendiri), React +
-routing berbasis registry akan jauh lebih mudah dirawat dalam jangka panjang
-dibanding vanilla JS yang mengatur DOM secara manual.
+## Tech stack
+
+Vite + React + Tailwind CSS + React Router (`HashRouter`, aman untuk refresh
+URL di GitHub Pages). Lihat versi sebelumnya di git history untuk detail
+alasan pemilihan stack.
 
 ## Arsitektur & prinsip modular
 
 ```
 src/
 ├── components/
-│   ├── layout/         # Sidebar, Navbar, AppLayout — kerangka aplikasi
-│   └── ui/              # Card, Badge, StatCard, PageHeader — dipakai lintas modul
+│   ├── layout/           Sidebar (accordion 4 menu), Navbar, AppLayout
+│   └── ui/                Card, Badge, StatCard, PageHeader, PageLoader
 ├── config/
-│   └── navigation.js    # ⭐ SATU-SATUNYA file yang perlu diedit untuk fitur baru
+│   └── navigation.js      ⭐ SATU-SATUNYA file untuk mengatur menu + routing
 ├── modules/
-│   ├── dashboard/        # Halaman utama & 404
-│   ├── teknis/           # Semua fitur Divisi Teknis Penyelenggaraan
-│   └── hukum/             # Semua fitur Divisi Hukum & JDIH
+│   ├── dashboard/          Beranda & halaman 404
+│   ├── shared/              ⭐ Template generik dipakai lintas sub-menu:
+│   │   ├── DocumentListPage.jsx    (type: "dokumen")
+│   │   ├── DataResultPage.jsx      (type: "data")
+│   │   ├── ExternalSystemPage.jsx  (type: "sistem")
+│   │   └── PlaceholderPage.jsx     (type: "placeholder" / fallback)
+│   ├── kinerja/  teknis/  hukum/  pleno/
+│   │   (kosong kecuali ada komponen KUSTOM — lihat README di masing-masing folder)
 ├── router/
-│   └── AppRouter.jsx     # Generate <Route> otomatis dari navigation.js
+│   └── AppRouter.jsx       Generate <Route> otomatis, pilih template sesuai `type`
 ├── App.jsx
 └── main.jsx
 ```
 
-Alur data satu arah: `navigation.js` → dibaca oleh `Sidebar.jsx` (untuk
-tampilan menu) dan `AppRouter.jsx` (untuk routing) sekaligus. Anda tidak
-pernah perlu menyentuh dua file itu lagi setelah setup awal.
+### Bagaimana satu sub-menu dirender
 
-## Cara menambah fitur baru (tanpa merombak kode)
+`navigation.js` mendefinisikan setiap sub-menu sebagai data:
 
-Contoh: menambah fitur "Rekap Logistik" di Divisi Teknis.
+```js
+{
+  id: "hukum-jdih",
+  label: "JDIH",
+  path: "/hukum/jdih",
+  icon: Scale,
+  type: "sistem",              // <- menentukan template yang dipakai
+  description: "Portal Jaringan Dokumentasi dan Informasi Hukum...",
+  meta: { url: "" },            // <- data spesifik untuk template "sistem"
+}
+```
 
-1. Buat file baru: `src/modules/teknis/RekapLogistik.jsx`
+`AppRouter.jsx` membaca `type: "sistem"` lalu otomatis merender
+`ExternalSystemPage` dan mengoper seluruh object di atas sebagai prop `menu`.
+Tidak ada routing manual yang perlu ditulis.
 
-   ```jsx
-   import PageHeader from "../../components/ui/PageHeader.jsx";
-   import Card from "../../components/ui/Card.jsx";
+### 4 tipe template yang tersedia
 
-   export default function RekapLogistik() {
-     return (
-       <>
-         <PageHeader
-           eyebrow="Divisi Teknis Penyelenggaraan"
-           title="Rekap Logistik"
-           description="Deskripsi singkat fitur ini."
-         />
-         <Card title="Konten fitur">{/* isi fitur Anda */}</Card>
-       </>
-     );
-   }
-   ```
+| type          | Dipakai untuk                                   | Data di `meta`                    |
+|---------------|--------------------------------------------------|-------------------------------------|
+| `dokumen`     | Rencana/Laporan Kinerja, Dokumen BA/SK, Laporan JDIH/SPIP | `documents: [{ nama, kategori, tahun }]` |
+| `data`        | Hasil Pemilu 2024, Hasil Pemilihan 2024           | `stats: [{ label, value }]`         |
+| `sistem`      | JDIH, SPIP, Medsos JDIH, Silakon, Simoku, SIKAP   | `url: "https://..."` (iframe + fallback link) |
+| `placeholder` | Default, sub-menu yang belum ditentukan bentuknya | — |
 
-2. Buka `src/config/navigation.js`, import lazy dan tambahkan satu entri:
+## Cara menambah sub-menu baru
+
+**Skenario A — cukup pakai template yang sudah ada (paling umum):**
+
+1. Buka `src/config/navigation.js`.
+2. Tambahkan satu object baru ke array `submenu` pada grup yang dituju, mis. `Teknis`:
 
    ```js
-   const RekapLogistik = lazy(() => import("../modules/teknis/RekapLogistik.jsx"));
-
-   // di dalam group "Divisi Teknis Penyelenggaraan" -> items:
    {
      id: "teknis-rekap-logistik",
      label: "Rekap Logistik",
      path: "/teknis/rekap-logistik",
-     icon: ListChecks, // import dari lucide-react
-     element: RekapLogistik,
+     icon: PackageCheck, // import dari lucide-react di bagian atas file
+     type: "dokumen",
+     description: "Rekapitulasi distribusi logistik pemilu.",
+     meta: { documents: [] },
+   },
+   ```
+3. Commit & push — selesai. Sidebar, breadcrumb, dan routing otomatis mengenali menu baru.
+
+**Skenario B — butuh tampilan/logika khusus (kalkulator, chart interaktif, dll):**
+
+1. Buat file komponen di `src/modules/<grup>/NamaFitur.jsx` (mis. `src/modules/teknis/SimulasiDapil.jsx`).
+2. Di `navigation.js`, import lazy di bagian atas:
+   ```js
+   const SimulasiDapil = lazy(() => import("../modules/teknis/SimulasiDapil.jsx"));
+   ```
+3. Tambahkan entri submenu dengan field `element` (field `type` boleh diabaikan):
+   ```js
+   {
+     id: "teknis-simulasi-dapil",
+     label: "Simulasi Dapil",
+     path: "/teknis/simulasi-dapil",
+     icon: MapPinned,
+     element: SimulasiDapil,
+     description: "Alat bantu estimasi alokasi kursi per dapil.",
    },
    ```
 
-3. `git commit` & `git push` — jika GitHub Actions sudah aktif (lihat di
-   bawah), website akan otomatis ter-update. Selesai — Sidebar dan routing
-   otomatis mengenali menu baru tanpa mengubah file lain.
+Tidak ada file lain (Sidebar, Navbar, AppRouter, App.jsx) yang perlu diubah
+di kedua skenario di atas.
+
+## Menambah menu utama (grup ke-5, dst.)
+
+Tambahkan object baru ke array `navigationGroups` di `navigation.js` dengan
+struktur yang sama (id, label, icon, submenu). Sidebar accordion akan
+otomatis menampilkannya sebagai grup collapsible baru.
 
 ## Menjalankan secara lokal
 
 ```bash
 npm install
-npm run dev       # buka http://localhost:5173
+npm run dev       # http://localhost:5173
 npm run build     # menghasilkan folder dist/ siap deploy
-npm run preview   # preview hasil build
+npm run preview
 ```
 
-## Opsi deployment
+## Deployment
 
-### 1. GitHub Pages (sudah disiapkan otomatis)
+Workflow GitHub Actions (`.github/workflows/deploy.yml`) sudah tersedia:
+push ke branch `main` akan otomatis build & deploy ke GitHub Pages (aktifkan
+sekali di Settings → Pages → Source → GitHub Actions). Build yang sama juga
+langsung bisa dipakai di Vercel/Netlify (`npm run build`, output `dist`).
 
-Workflow di `.github/workflows/deploy.yml` akan build & deploy otomatis
-setiap kali ada push ke branch `main`. Aktifkan sekali saja di repo:
+## Mengisi konten sungguhan
 
-1. Settings → Pages → Source → pilih **GitHub Actions**.
-2. Push ke `main`, tunggu workflow selesai di tab **Actions**.
-3. Situs akan tersedia di `https://<username>.github.io/<nama-repo>/`.
-
-### 2. Vercel / Netlify
-
-Import repositori langsung dari dashboard Vercel/Netlify:
-
-- Build command: `npm run build`
-- Output directory: `dist`
-
-Tidak perlu konfigurasi tambahan — `vite.config.js` sudah menggunakan
-`base: "./"` sehingga build yang sama bekerja di semua platform tersebut.
-
-## Mengganti data contoh dengan data nyata
-
-Beberapa halaman (`SimulasiDapil.jsx`, `JdihArsip.jsx`) memakai data contoh
-langsung di dalam komponen. Untuk produksi, disarankan:
-
-- Pindahkan data statis ke `public/data/*.json` dan `fetch()` saat komponen
-  dimuat, sehingga admin non-teknis bisa memperbarui data tanpa build ulang, atau
-- Hubungkan ke API/Google Sheets/Airtable sesuai kebutuhan divisi.
+- **type: "dokumen"** — pindahkan `meta.documents` ke `public/data/<slug>.json`
+  dan `fetch()` di `DocumentListPage.jsx`, agar admin non-teknis bisa update
+  data tanpa build ulang.
+- **type: "data"** — sambungkan `DataResultPage.jsx` ke sumber data resmi
+  (mis. Sirekap/SIDALIH) menggantikan area placeholder tabel/chart.
+- **type: "sistem"** — isi `meta.url` dengan alamat sistem terkait
+  (JDIH, SPIP, Silakon, Simoku, SIKAP, dll). Jika sistem tersebut memblokir
+  embed (`X-Frame-Options`), pengguna tetap bisa memakai tombol
+  "Buka di tab baru" yang selalu tersedia.
 
 ## Identitas visual
 
 Token warna & tipografi terpusat di `tailwind.config.js`
 (`ink`, `slate`, `gold`, `merah`) dan font di `index.html`
-(Plus Jakarta Sans untuk teks, IBM Plex Mono untuk data/kode). Gunakan token
-ini di komponen baru agar identitas visual tetap konsisten.
+(Plus Jakarta Sans + IBM Plex Mono). Gunakan token ini di komponen baru agar
+identitas visual tetap konsisten di seluruh sub-menu.

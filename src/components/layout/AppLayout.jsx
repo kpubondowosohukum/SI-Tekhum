@@ -18,7 +18,7 @@ export default function AppLayout() {
           </div>
         </main>
         <footer className="border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400">
-          Subbagian Teknis dan Hukum · KPU Kabupaten — dikelola melalui repositori GitHub
+          SI-Tekhum · Subbagian Teknis dan Hukum, KPU Kabupaten — dikelola melalui repositori GitHub
         </footer>
       </div>
     </div>

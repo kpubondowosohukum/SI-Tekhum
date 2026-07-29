@@ -19,7 +19,7 @@ export default function Navbar({ onOpenSidebar }) {
       {/* Breadcrumb / identitas halaman */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Portal Tekhum</span>
+          <span>SI-Tekhum</span>
           {active && (
             <>
               <ChevronRight size={12} />

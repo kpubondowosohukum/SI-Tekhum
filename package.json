@@ -1,7 +1,7 @@
 {
-  "name": "kpu-tekhum-portal",
-  "version": "1.0.0",
-  "description": "Portal internal Subbagian Teknis dan Hukum (Tekhum) KPU Kabupaten — SPA modular untuk fitur, alat, dan visualisasi data Divisi Teknis Penyelenggaraan & Divisi Hukum/JDIH.",
+  "name": "si-tekhum",
+  "version": "1.1.0",
+  "description": "SI-Tekhum — Sistem Informasi Teknis dan Hukum KPU Kabupaten. SPA modular dengan 4 menu utama (Kinerja, Teknis, Hukum, Pleno) dan sub-menu dinamis.",
   "type": "module",
   "scripts": {
     "dev": "vite",
