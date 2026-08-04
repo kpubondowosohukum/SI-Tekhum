@@ -137,7 +137,46 @@ Tambahkan object baru ke array `navigationGroups` di `navigation.js` dengan
 struktur yang sama (id, label, icon, submenu). Sidebar accordion akan
 otomatis menampilkannya sebagai grup collapsible baru.
 
+## Integrasi Google Drive & Google Sheets (Laporan Kinerja)
+
+Sub-menu **Laporan Kinerja** sudah tersambung ke Google Drive (untuk file
+evidence) dan Google Sheets (sebagai "database" baris laporan), lewat Google
+Apps Script — tanpa pengguna perlu login akun Google (Opsi A), dan dengan
+**scope akses seminimal mungkin (`drive.file`)**: script hanya bisa
+mengakses satu folder & satu spreadsheet yang dibuatnya sendiri, sama sekali
+tidak bisa menyentuh file lain di akun Google tersebut.
+
+**Panduan setup lengkap (10–15 menit, sekali saja):** lihat
+[`google-apps-script/README.md`](./google-apps-script/README.md)
+
+Ringkasan arsitektur:
+```
+Form "Tambah Laporan Baru" (React)
+        │ fetch() dengan file evidence sebagai base64
+        ▼
+Google Apps Script Web App (google-apps-script/Code.gs)
+   scope: drive.file (bukan drive penuh) — lihat appsscript.json
+        │                              │
+        ▼                              ▼
+Folder Google Drive              Google Sheets
+(dibuat otomatis oleh          (dibuat otomatis oleh
+ script, hanya folder ini        script, hanya sheet ini
+ yang bisa diakses)               yang bisa diakses)
+```
+
+File terkait di frontend:
+- `src/config/integrations.js` — baca URL Web App dari `VITE_GOOGLE_SCRIPT_URL`
+- `src/services/driveApi.js` — `fetchLaporanKinerja()`, `submitLaporanKinerja()`, `fetchStorageStatus()`
+- `src/utils/file.js` — konversi file ke base64 sebelum dikirim
+- `src/modules/kinerja/LaporanKinerja.jsx` — halaman yang memakai semua di atas, termasuk panel "Cek folder Drive yang sedang dipakai" untuk verifikasi mandiri
+
+Kalau `VITE_GOOGLE_SCRIPT_URL` belum diisi, halaman otomatis menampilkan data
+contoh + pemberitahuan bahwa koneksi belum aktif, sehingga tampilan tetap
+bisa di-preview tanpa setup backend terlebih dahulu.
+
 ## Menjalankan secara lokal
+
+
 
 ```bash
 npm install

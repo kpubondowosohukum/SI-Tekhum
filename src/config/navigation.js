@@ -55,6 +55,9 @@ import {
 // --- Halaman inti ---
 const DashboardPage = lazy(() => import("../modules/dashboard/DashboardPage.jsx"));
 
+// --- Komponen kustom (bukan template shared) ---
+const LaporanKinerja = lazy(() => import("../modules/kinerja/LaporanKinerja.jsx"));
+
 export const topLevel = [
   {
     id: "beranda",
@@ -90,13 +93,8 @@ export const navigationGroups = [
         label: "Laporan Kinerja",
         path: "/kinerja/laporan-kinerja",
         icon: FileText,
-        type: "dokumen",
-        description: "Laporan capaian dan evaluasi kinerja periode berjalan.",
-        meta: {
-          documents: [
-            { nama: "Laporan Kinerja Triwulan I 2026", kategori: "LKj", tahun: 2026 },
-          ],
-        },
+        description: "Rekapitulasi laporan kinerja harian Subbagian Teknis dan Hukum.",
+        element: LaporanKinerja,
       },
     ],
   },

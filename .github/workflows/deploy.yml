@@ -31,7 +31,9 @@ jobs:
         run: npm ci
 
       - name: Build project
-        run: npm run build
+  	run: npm run build
+  	env:
+	  VITE_GOOGLE_SCRIPT_URL: ${{ secrets.VITE_GOOGLE_SCRIPT_URL }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
