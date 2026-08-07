@@ -324,3 +324,40 @@ export function findActiveGroupId(pathname) {
   const group = navigationGroups.find((g) => containsActivePath(g.submenu, pathname));
   return group?.id ?? null;
 }
+
+// Cari satu item menu (di mana pun posisinya — top level, submenu, atau
+// bersarang di dalam children) berdasarkan id-nya. Dipakai oleh komponen
+// presentasi (mis. hero carousel, grid quick-access di Beranda) supaya
+// mereka TIDAK PERNAH menyalin ulang URL/label — selalu ambil langsung dari
+// satu sumber data ini.
+function searchById(items, id) {
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (hasChildren(item)) {
+      const found = searchById(item.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export function findItemById(id) {
+  const top = topLevel.find((item) => item.id === id);
+  if (top) return top;
+  for (const group of navigationGroups) {
+    const found = searchById(group.submenu, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+// Navigasi ke sebuah item menu: kalau external, buka tab baru; kalau
+// halaman internal, pindah rute lewat react-router `navigate`.
+export function goToItem(item, navigate) {
+  if (!item) return;
+  if (isExternalLink(item)) {
+    window.open(item.url, "_blank", "noopener,noreferrer");
+  } else if (item.path) {
+    navigate(item.path);
+  }
+}
