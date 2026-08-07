@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { navigationGroups } from "../../config/navigation.js";
+import { ArrowUpRight } from "lucide-react";
+import { navigationGroups, isExternalLink, hasChildren } from "../../config/navigation.js";
 import PageHeader from "../../components/ui/PageHeader.jsx";
 import Card from "../../components/ui/Card.jsx";
 import Badge from "../../components/ui/Badge.jsx";
@@ -10,7 +11,7 @@ export default function DashboardPage() {
       <PageHeader
         eyebrow="Ringkasan"
         title="Selamat datang di SI-Tekhum"
-        description="Titik akses tunggal untuk seluruh alat kerja, dokumen, dan sistem Divisi Teknis Penyelenggaraan, Hukum, Kinerja, dan Pleno."
+        description="Titik akses tunggal untuk seluruh alat kerja, dokumen, dan sistem Divisi Teknis Penyelenggaraan, Hukum, dan Kinerja."
       />
 
       {/* Kartu ini digenerate otomatis dari navigationGroups — menambah
@@ -32,11 +33,7 @@ export default function DashboardPage() {
             >
               <ul className="space-y-2 text-sm">
                 {group.submenu.map((item) => (
-                  <li key={item.id}>
-                    <Link to={item.path} className="font-medium text-ink-700 hover:underline">
-                      {item.label} →
-                    </Link>
-                  </li>
+                  <SubmenuLink key={item.id} item={item} />
                 ))}
               </ul>
             </Card>
@@ -59,21 +56,53 @@ export default function DashboardPage() {
             pada grup yang dituju.
           </li>
           <li>
-            Tentukan <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">type</code>:{" "}
-            <Badge tone="gold">dokumen</Badge> <Badge tone="gold">data</Badge>{" "}
-            <Badge tone="gold">sistem</Badge> <Badge tone="neutral">placeholder</Badge> — halaman
-            akan otomatis memakai template yang sesuai.
-          </li>
-          <li>
-            Butuh tampilan khusus? Buat file di{" "}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
-              src/modules/&lt;grup&gt;/
-            </code>{" "}
-            dan daftarkan lewat field <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">element</code>.
+            Pilih bentuknya: halaman internal (<Badge tone="gold">type</Badge>/
+            <Badge tone="gold">element</Badge>), link langsung (
+            <Badge tone="gold">external: true</Badge>), atau submenu bertingkat (
+            <Badge tone="gold">children</Badge>).
           </li>
           <li>Commit &amp; push ke GitHub — deploy otomatis akan memperbarui website.</li>
         </ol>
       </Card>
     </>
+  );
+}
+
+function SubmenuLink({ item }) {
+  if (hasChildren(item)) {
+    return (
+      <li>
+        <p className="font-medium text-slate-500">{item.label}</p>
+        <ul className="mt-1 space-y-1.5 pl-3">
+          {item.children.map((child) => (
+            <SubmenuLink key={child.id} item={child} />
+          ))}
+        </ul>
+      </li>
+    );
+  }
+
+  if (isExternalLink(item)) {
+    return (
+      <li>
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 font-medium text-ink-700 hover:underline"
+        >
+          {item.label}
+          <ArrowUpRight size={13} />
+        </a>
+      </li>
+    );
+  }
+
+  return (
+    <li>
+      <Link to={item.path} className="font-medium text-ink-700 hover:underline">
+        {item.label} →
+      </Link>
+    </li>
   );
 }

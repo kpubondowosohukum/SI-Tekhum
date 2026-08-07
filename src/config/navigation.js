@@ -14,8 +14,9 @@ import {
   Share2,
   Link2,
   Database,
-  Users,
   MonitorSmartphone,
+  MapPinned,
+  FileSpreadsheet,
 } from "lucide-react";
 
 /**
@@ -26,29 +27,29 @@ import {
  *  Sidebar, breadcrumb, dan router semuanya digenerate otomatis dari sini.
  *
  *  STRUKTUR DATA
- *  - `topLevel`  : link tanpa submenu, tampil di atas grup collapsible (Beranda).
- *  - `navigationGroups` : 4 menu utama, masing-masing punya array `submenu`.
+ *  - `topLevel`         : link tanpa submenu, tampil di atas grup (Beranda).
+ *  - `navigationGroups` : menu utama, masing-masing punya array `submenu`.
  *
- *  SETIAP ITEM SUBMENU MEMILIKI:
- *    id          -> string unik (key React + breadcrumb)
- *    label       -> teks yang tampil di sidebar
- *    path        -> path unik untuk routing (harus diawali "/")
- *    icon        -> komponen ikon lucide-react
- *    type        -> salah satu dari: "dokumen" | "data" | "sistem" | "placeholder"
- *                   (menentukan TEMPLATE UI yang dipakai — lihat modules/shared/)
- *    description -> teks singkat, tampil di header halaman
- *    meta        -> data spesifik per-tipe (lihat contoh di masing-masing entri)
- *    element     -> (opsional) override komponen kustom (lazy-loaded), dipakai
- *                   kalau halaman butuh logika khusus (bukan sekadar template)
+ *  SETIAP ITEM SUBMENU BISA BERUPA SALAH SATU DARI 3 BENTUK:
+ *
+ *  1) HALAMAN INTERNAL (biasa) — dirender di dalam SI-Tekhum:
+ *     { id, label, path, icon, type: "dokumen"|"data"|"sistem"|"placeholder"|"developing",
+ *       description, meta }
+ *     atau pakai `element` (komponen kustom) alih-alih `type`.
+ *
+ *  2) LINK LANGSUNG (external) — WAJIB langsung membuka URL tujuan saat
+ *     diklik, TANPA halaman perantara/tombol tambahan:
+ *     { id, label, icon, external: true, url: "https://..." }
+ *     Sidebar akan merender ini sebagai tautan biasa (bukan rute internal).
+ *
+ *  3) SUBMENU BERTINGKAT (nested) — item yang punya anak sendiri (masing-
+ *     masing anak boleh berbentuk (1) atau (2) di atas):
+ *     { id, label, icon, children: [ ...item (1) atau (2)... ] }
  *
  *  CARA MENAMBAH SUB-MENU BARU (tanpa mengubah file lain):
- *   1. Tentukan tipe template yang paling sesuai: "dokumen", "data", "sistem",
- *      atau "placeholder" (default, kalau belum jelas kontennya).
- *   2. Tambahkan satu object baru ke array `submenu` pada grup terkait.
- *   3. Kalau butuh tampilan/logika khusus (mis. kalkulator, chart interaktif),
- *      buat file komponen di src/modules/<grup>/NamaFitur.jsx lalu isi
- *      `element: lazy(() => import("../modules/<grup>/NamaFitur.jsx"))`.
- *      Field `type` boleh diisi bebas kalau `element` sudah ada.
+ *   - Halaman internal biasa -> tambah object bentuk (1) ke `submenu`.
+ *   - Link langsung ke sistem luar -> tambah object bentuk (2) ke `submenu`.
+ *   - Submenu dengan anak -> tambah object bentuk (3) ke `submenu`.
  * ============================================================================
  */
 
@@ -56,7 +57,7 @@ import {
 const DashboardPage = lazy(() => import("../modules/dashboard/DashboardPage.jsx"));
 
 // --- Komponen kustom (bukan template shared) ---
-const LaporanKinerja = lazy(() => import("../modules/kinerja/LaporanKinerja.jsx"));
+const MedsosJdih = lazy(() => import("../modules/hukum/MedsosJdih.jsx"));
 
 export const topLevel = [
   {
@@ -89,12 +90,14 @@ export const navigationGroups = [
         },
       },
       {
+        // Link langsung ke Google Apps Script Web App (bukan lagi halaman
+        // tabel internal). Lihat catatan di README bagian "Laporan Kinerja"
+        // soal konsekuensi perubahan ini.
         id: "kinerja-laporan",
         label: "Laporan Kinerja",
-        path: "/kinerja/laporan-kinerja",
         icon: FileText,
-        description: "Rekapitulasi laporan kinerja harian Subbagian Teknis dan Hukum.",
-        element: LaporanKinerja,
+        external: true,
+        url: "https://script.google.com/macros/s/AKfycbymKKzYGt7-19NnZMUWvzhTVwUFxgENRCGURasNjXyMjJ6Hep7EqIREeQMD3bpXUbDq2A/exec",
       },
     ],
   },
@@ -146,6 +149,19 @@ export const navigationGroups = [
           ],
         },
       },
+      {
+        // Belum ada link/kontennya — ditandai "developing" dengan pesan
+        // santai sesuai permintaan, gampang diganti nanti begitu linknya ada.
+        id: "teknis-sidapil",
+        label: "SIDAPIL",
+        path: "/teknis/sidapil",
+        icon: MapPinned,
+        type: "developing",
+        description: "Sistem Informasi Daerah Pemilihan (SIDAPIL).",
+        meta: {
+          message: "Bentar ya aku cari dulu linknya wkwk",
+        },
+      },
     ],
   },
   {
@@ -154,22 +170,27 @@ export const navigationGroups = [
     icon: Scale,
     submenu: [
       {
-        id: "hukum-dokumen-ba",
-        label: "Dokumen BA",
-        path: "/hukum/dokumen-ba",
+        // Submenu bertingkat: "Berita Acara (BA)" punya 2 anak, keduanya
+        // link langsung ke sistem luar.
+        id: "hukum-ba",
+        label: "Berita Acara (BA)",
         icon: FileCheck2,
-        type: "dokumen",
-        description: "Arsip Berita Acara rapat, pleno, dan kegiatan kehukuman.",
-        meta: { documents: [] },
-      },
-      {
-        id: "hukum-dokumen-sk",
-        label: "Dokumen SK",
-        path: "/hukum/dokumen-sk",
-        icon: FileText,
-        type: "dokumen",
-        description: "Arsip Surat Keputusan KPU Kabupaten.",
-        meta: { documents: [] },
+        children: [
+          {
+            id: "hukum-ba-rekap",
+            label: "Rekapitulasi BA",
+            icon: ScrollText,
+            external: true,
+            url: "https://docs.google.com/spreadsheets/d/1bm5oIUvrjGHjWszF6MsN9gS8XQlSBWKGkxdkp_kbQko/edit?usp=drive_link",
+          },
+          {
+            id: "hukum-ba-sikap",
+            label: "SIKAP",
+            icon: MonitorSmartphone,
+            external: true,
+            url: "https://datastudio.google.com/u/0/reporting/6c3431bb-54a5-49e7-b3fa-3cb0e1c5fb11/page/VS3qF",
+          },
+        ],
       },
       {
         id: "hukum-laporan-jdih",
@@ -192,75 +213,91 @@ export const navigationGroups = [
       {
         id: "hukum-jdih",
         label: "JDIH",
-        path: "/hukum/jdih",
         icon: Scale,
-        type: "sistem",
-        description: "Portal Jaringan Dokumentasi dan Informasi Hukum KPU Kabupaten.",
-        meta: { url: "" },
+        external: true,
+        url: "https://jdih.kpu.go.id/jatim/bondowoso",
       },
       {
         id: "hukum-spip",
         label: "SPIP (Sip Sekali)",
         path: "/hukum/spip",
         icon: ShieldCheck,
-        type: "sistem",
+        type: "developing",
         description: "Aplikasi pemantauan Sistem Pengendalian Intern Pemerintah.",
-        meta: { url: "" },
+        meta: {
+          message:
+            "Fitur SPIP (Sip Sekali) masih OTW (On The Way). Silakan hubungi Hima untuk informasi lebih lanjut.",
+        },
       },
       {
         id: "hukum-medsos-jdih",
         label: "Medsos JDIH",
         path: "/hukum/medsos-jdih",
         icon: Share2,
-        type: "sistem",
         description: "Kanal media sosial publikasi produk hukum JDIH.",
-        meta: { url: "" },
+        element: MedsosJdih,
       },
       {
         id: "hukum-silakon",
         label: "Silakon",
-        path: "/hukum/silakon",
         icon: Link2,
-        type: "sistem",
-        description: "Sistem layanan konsultasi hukum kepemiluan.",
-        meta: { url: "" },
+        external: true,
+        url: "https://docs.google.com/spreadsheets/d/10QPJkrj2vbXl6XQReO-bE7_g9hB17bIYMq-Da8D0h5k/edit?usp=sharing",
       },
       {
         id: "hukum-simoku",
         label: "Simoku",
-        path: "/hukum/simoku",
         icon: Database,
-        type: "sistem",
-        description: "Sistem informasi monitoring kepatuhan/kearsipan hukum.",
-        meta: { url: "" },
+        external: true,
+        url: "https://datastudio.google.com/u/0/reporting/c3ddcb09-0287-405e-97f0-c3486c2eca7e/page/iCBrF",
       },
     ],
   },
   {
-    id: "pleno",
-    label: "Pleno",
-    icon: Users,
+    id: "laporan",
+    label: "Laporan",
+    icon: FileSpreadsheet,
     submenu: [
       {
-        id: "pleno-sikap",
-        label: "SIKAP",
-        path: "/pleno/sikap",
-        icon: MonitorSmartphone,
-        type: "sistem",
-        description: "Sistem Informasi Kegiatan dan Administrasi Pleno.",
-        meta: { url: "" },
+        id: "laporan-2026",
+        label: "Laporan 2026",
+        icon: FileText,
+        external: true,
+        url: "https://script.google.com/macros/s/AKfycbypReHXbOBl5tpJWO1eva3ijhADUdCIAyK9Zg4lG5__3i1UIoOla8uMWrK7Tf9e1MXM/exec",
       },
     ],
   },
 ];
 
-// Gabungan semua item yang punya path (topLevel + seluruh submenu) — dipakai
-// oleh AppRouter untuk generate <Route> dan oleh Navbar untuk breadcrumb.
+// --- Helper: apakah sebuah item adalah link langsung (bukan rute internal) ---
+export function isExternalLink(item) {
+  return Boolean(item?.external && item?.url);
+}
+
+// --- Helper: apakah sebuah item punya anak (submenu bertingkat) ---
+export function hasChildren(item) {
+  return Array.isArray(item?.children) && item.children.length > 0;
+}
+
+// Meratakan seluruh item yang PUNYA RUTE INTERNAL (path + bukan external),
+// termasuk yang bersarang di dalam `children` — dipakai AppRouter untuk
+// generate <Route> dan Navbar untuk breadcrumb. Item external TIDAK
+// dimasukkan karena memang tidak punya halaman/rute di dalam SI-Tekhum.
+function flattenRoutable(items, groupLabel) {
+  return items.flatMap((item) => {
+    if (hasChildren(item)) {
+      return flattenRoutable(item.children, groupLabel);
+    }
+    if (isExternalLink(item)) {
+      return [];
+    }
+    return [{ ...item, group: groupLabel }];
+  });
+}
+
 export const flatNavigation = [
   ...topLevel.map((item) => ({ ...item, group: "Beranda" })),
-  ...navigationGroups.flatMap((group) =>
-    group.submenu.map((item) => ({ ...item, group: group.label }))
-  ),
+  ...navigationGroups.flatMap((group) => flattenRoutable(group.submenu, group.label)),
 ];
 
 // Cari metadata halaman aktif berdasarkan path saat ini (untuk breadcrumb/judul).
@@ -274,9 +311,16 @@ export function findActiveNavItem(pathname) {
 }
 
 // Cari grup mana yang sedang aktif (dipakai Sidebar untuk auto-expand accordion).
+// Menelusuri juga ke dalam `children` untuk submenu bertingkat.
+function containsActivePath(items, pathname) {
+  return items.some((item) => {
+    if (hasChildren(item)) return containsActivePath(item.children, pathname);
+    if (isExternalLink(item)) return false;
+    return item.path === pathname || pathname.startsWith(item.path);
+  });
+}
+
 export function findActiveGroupId(pathname) {
-  const group = navigationGroups.find((g) =>
-    g.submenu.some((item) => item.path === pathname || pathname.startsWith(item.path))
-  );
+  const group = navigationGroups.find((g) => containsActivePath(g.submenu, pathname));
   return group?.id ?? null;
 }

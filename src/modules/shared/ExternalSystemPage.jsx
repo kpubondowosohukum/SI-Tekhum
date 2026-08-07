@@ -5,16 +5,27 @@ import Badge from "../../components/ui/Badge.jsx";
 
 /**
  * Template untuk sub-menu type: "sistem"
- * Dipakai oleh: JDIH, SPIP, Medsos JDIH, Silakon, Simoku, SIKAP, dll —
- * sub-menu yang sebenarnya adalah pintasan/embed ke sistem eksternal.
+ * Dipakai oleh: JDIH, Silakon, Simoku, SIKAP, SPIP, dll — sub-menu yang
+ * merupakan pintasan/embed ke sistem/dashboard eksternal.
  *
- * Isi `menu.meta.url` di navigation.js untuk mengaktifkan tampilan iframe.
- * Tombol "Buka di tab baru" selalu tersedia sebagai fallback, karena banyak
- * sistem pemerintah mengunci header X-Frame-Options sehingga tidak bisa
- * di-embed langsung.
+ * Field yang dibaca dari `menu.meta`:
+ *  - url          : (wajib) alamat yang dibuka lewat tombol "Buka di tab baru"
+ *  - embedUrl      : (opsional) alamat KHUSUS untuk ditaruh di iframe, kalau
+ *                     beda dari `url` (mis. link edit Google Sheets perlu
+ *                     diubah ke versi /preview supaya bisa di-embed). Kalau
+ *                     kosong, `url` dipakai juga untuk iframe.
+ *  - buttonLabel   : (opsional) teks tombol, default "Buka di tab baru"
+ *  - height        : (opsional) tinggi iframe, default "70vh"
+ *
+ * Tombol "Buka di tab baru"/label custom SELALU tersedia sebagai fallback,
+ * karena banyak sistem (terutama situs pemerintah) mengunci header
+ * X-Frame-Options sehingga tidak bisa di-embed langsung.
  */
 export default function ExternalSystemPage({ menu }) {
   const url = menu?.meta?.url;
+  const embedUrl = menu?.meta?.embedUrl || url;
+  const buttonLabel = menu?.meta?.buttonLabel || "Buka di tab baru";
+  const height = menu?.meta?.height || "70vh";
 
   return (
     <>
@@ -31,7 +42,7 @@ export default function ExternalSystemPage({ menu }) {
               className="flex items-center gap-1.5 rounded-lg bg-ink-700 px-3.5 py-2 text-sm font-medium text-white hover:bg-ink-600"
             >
               <ExternalLink size={16} />
-              Buka di tab baru
+              {buttonLabel}
             </a>
           ) : null
         }
@@ -53,15 +64,16 @@ export default function ExternalSystemPage({ menu }) {
             <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
               <AlertTriangle size={14} className="mt-0.5 shrink-0" />
               <p>
-                Sebagian sistem pemerintah tidak mengizinkan tampilan tertanam (embed). Jika
-                area di bawah kosong/gagal muat, gunakan tombol "Buka di tab baru" di atas.
+                Sebagian sistem tidak mengizinkan tampilan tertanam (embed). Jika area di bawah
+                kosong/gagal muat, gunakan tombol "{buttonLabel}" di atas.
               </p>
             </div>
             <div className="overflow-hidden rounded-lg border border-slate-200">
               <iframe
-                src={url}
+                src={embedUrl}
                 title={menu?.label}
-                className="h-[70vh] w-full"
+                className="w-full"
+                style={{ height }}
                 loading="lazy"
               />
             </div>

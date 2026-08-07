@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { X, ChevronDown } from "lucide-react";
-import { topLevel, navigationGroups, findActiveGroupId } from "../../config/navigation.js";
+import { X, ChevronDown, ArrowUpRight } from "lucide-react";
+import {
+  topLevel,
+  navigationGroups,
+  findActiveGroupId,
+  isExternalLink,
+  hasChildren,
+} from "../../config/navigation.js";
 
 export default function Sidebar({ open, onClose }) {
   const { pathname } = useLocation();
 
-  // Grup yang sedang terbuka (bisa lebih dari satu). Grup yang berisi
-  // halaman aktif otomatis ikut terbuka saat pertama kali render/berpindah.
+  // Grup menu utama yang sedang terbuka.
   const [openGroups, setOpenGroups] = useState(() => {
     const active = findActiveGroupId(pathname);
     return active ? new Set([active]) : new Set();
   });
+
+  // Submenu bertingkat (mis. "Berita Acara (BA)") yang sedang terbuka.
+  const [openSubmenus, setOpenSubmenus] = useState(new Set());
 
   useEffect(() => {
     const active = findActiveGroupId(pathname);
@@ -22,6 +30,14 @@ export default function Sidebar({ open, onClose }) {
 
   function toggleGroup(id) {
     setOpenGroups((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSubmenu(id) {
+    setOpenSubmenus((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
@@ -93,12 +109,15 @@ export default function Sidebar({ open, onClose }) {
             Menu Utama
           </p>
 
-          {/* 4 menu utama, masing-masing collapsible berisi submenu */}
           <ul className="space-y-1">
             {navigationGroups.map((group) => {
               const isOpen = openGroups.has(group.id);
               const GroupIcon = group.icon;
-              const groupIsActive = group.submenu.some((item) => pathname.startsWith(item.path));
+              const groupIsActive = group.submenu.some((item) =>
+                hasChildren(item)
+                  ? item.children.some((c) => !isExternalLink(c) && pathname.startsWith(c.path))
+                  : !isExternalLink(item) && pathname.startsWith(item.path)
+              );
 
               return (
                 <li key={group.id}>
@@ -128,24 +147,15 @@ export default function Sidebar({ open, onClose }) {
                     }`}
                   >
                     <ul className="min-h-0 space-y-0.5 py-1 pl-4">
-                      {group.submenu.map(({ id, label, path, icon: SubIcon }) => (
-                        <li key={id}>
-                          <NavLink
-                            to={path}
-                            onClick={onClose}
-                            className={({ isActive }) =>
-                              [
-                                "flex items-center gap-2.5 rounded-lg border-l-2 py-2 pl-3 pr-3 text-[13px] font-medium transition-colors",
-                                isActive
-                                  ? "border-gold-400 bg-ink-700/70 text-white"
-                                  : "border-white/5 text-slate-400 hover:border-white/20 hover:bg-white/5 hover:text-white",
-                              ].join(" ")
-                            }
-                          >
-                            <SubIcon size={15} className="shrink-0" />
-                            <span className="truncate">{label}</span>
-                          </NavLink>
-                        </li>
+                      {group.submenu.map((item) => (
+                        <SubmenuItem
+                          key={item.id}
+                          item={item}
+                          pathname={pathname}
+                          onNavigate={onClose}
+                          isSubOpen={openSubmenus.has(item.id)}
+                          onToggleSub={() => toggleSubmenu(item.id)}
+                        />
                       ))}
                     </ul>
                   </div>
@@ -163,5 +173,91 @@ export default function Sidebar({ open, onClose }) {
         </div>
       </aside>
     </>
+  );
+}
+
+// Merender satu baris submenu — bisa berupa: link internal biasa, link
+// langsung (external, WAJIB membuka URL saat diklik tanpa perantara), atau
+// grup bertingkat dengan anak-anaknya sendiri.
+function SubmenuItem({ item, pathname, onNavigate, isSubOpen, onToggleSub }) {
+  const { label, icon: Icon } = item;
+
+  // (3) Submenu bertingkat — punya children sendiri.
+  if (hasChildren(item)) {
+    return (
+      <li>
+        <button
+          onClick={onToggleSub}
+          aria-expanded={isSubOpen}
+          className="flex w-full items-center gap-2.5 rounded-lg border-l-2 border-white/5 py-2 pl-3 pr-3 text-left text-[13px] font-medium text-slate-400 hover:border-white/20 hover:bg-white/5 hover:text-white"
+        >
+          <Icon size={15} className="shrink-0" />
+          <span className="flex-1 truncate">{label}</span>
+          <ChevronDown
+            size={13}
+            className={`shrink-0 transition-transform duration-200 ${isSubOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+        <div
+          className={`grid overflow-hidden transition-all duration-200 ease-out ${
+            isSubOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <ul className="min-h-0 space-y-0.5 py-1 pl-5">
+            {item.children.map((child) => (
+              <SubmenuItem
+                key={child.id}
+                item={child}
+                pathname={pathname}
+                onNavigate={onNavigate}
+                isSubOpen={false}
+                onToggleSub={() => {}}
+              />
+            ))}
+          </ul>
+        </div>
+      </li>
+    );
+  }
+
+  // (2) Link langsung — langsung membuka URL eksternal, tanpa halaman
+  // perantara. Dibuka di tab baru supaya SI-Tekhum tetap terbuka.
+  if (isExternalLink(item)) {
+    return (
+      <li>
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onNavigate}
+          className="flex items-center gap-2.5 rounded-lg border-l-2 border-white/5 py-2 pl-3 pr-3 text-[13px] font-medium text-slate-400 hover:border-white/20 hover:bg-white/5 hover:text-white"
+        >
+          <Icon size={15} className="shrink-0" />
+          <span className="flex-1 truncate">{label}</span>
+          <ArrowUpRight size={13} className="shrink-0 text-slate-500" />
+        </a>
+      </li>
+    );
+  }
+
+  // (1) Halaman internal biasa.
+  return (
+    <li>
+      <NavLink
+        to={item.path}
+        onClick={onNavigate}
+        className={({ isActive }) =>
+          [
+            "flex items-center gap-2.5 rounded-lg border-l-2 py-2 pl-3 pr-3 text-[13px] font-medium transition-colors",
+            isActive
+              ? "border-gold-400 bg-ink-700/70 text-white"
+              : "border-white/5 text-slate-400 hover:border-white/20 hover:bg-white/5 hover:text-white",
+          ].join(" ")
+        }
+      >
+        <Icon size={15} className="shrink-0" />
+        <span className="truncate">{label}</span>
+      </NavLink>
+    </li>
   );
 }

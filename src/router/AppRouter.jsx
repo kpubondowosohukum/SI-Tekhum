@@ -8,6 +8,7 @@ const DocumentListPage = lazy(() => import("../modules/shared/DocumentListPage.j
 const DataResultPage = lazy(() => import("../modules/shared/DataResultPage.jsx"));
 const ExternalSystemPage = lazy(() => import("../modules/shared/ExternalSystemPage.jsx"));
 const PlaceholderPage = lazy(() => import("../modules/shared/PlaceholderPage.jsx"));
+const UnderDevelopmentPage = lazy(() => import("../modules/shared/UnderDevelopmentPage.jsx"));
 
 // Peta type -> komponen template. Tambahkan tipe baru di sini kalau suatu
 // saat butuh kategori template lain (mis. "chart", "kalender", dst).
@@ -16,6 +17,7 @@ const TEMPLATE_BY_TYPE = {
   data: DataResultPage,
   sistem: ExternalSystemPage,
   placeholder: PlaceholderPage,
+  developing: UnderDevelopmentPage,
 };
 
 /**
