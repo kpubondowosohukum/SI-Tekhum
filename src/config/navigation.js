@@ -67,6 +67,15 @@ export const topLevel = [
     icon: LayoutDashboard,
     element: DashboardPage,
   },
+  {
+    // Menu mandiri tanpa dropdown — klik langsung buka Apps Script,
+    // sesuai permintaan "Laporan" jadi menu tunggal (bukan grup submenu).
+    id: "laporan",
+    label: "Laporan",
+    icon: FileSpreadsheet,
+    external: true,
+    url: "https://script.google.com/macros/s/AKfycbypReHXbOBl5tpJWO1eva3ijhADUdCIAyK9Zg4lG5__3i1UIoOla8uMWrK7Tf9e1MXM/exec",
+  },
 ];
 
 export const navigationGroups = [
@@ -80,13 +89,13 @@ export const navigationGroups = [
         label: "Rencana Kinerja",
         path: "/kinerja/rencana-kinerja",
         icon: ClipboardList,
-        type: "dokumen",
+        type: "sistem",
         description: "Dokumen perencanaan kinerja tahunan Subbagian Tekhum.",
         meta: {
-          documents: [
-            { nama: "Rencana Kinerja Tahunan 2026", kategori: "RKT", tahun: 2026 },
-            { nama: "Perjanjian Kinerja Subbagian Tekhum 2026", kategori: "PK", tahun: 2026 },
-          ],
+          url: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/edit?usp=sharing",
+          embedUrl: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/preview",
+          hideButton: true,
+          height: "75vh",
         },
       },
       {
@@ -150,16 +159,17 @@ export const navigationGroups = [
         },
       },
       {
-        // Belum ada link/kontennya — ditandai "developing" dengan pesan
-        // santai sesuai permintaan, gampang diganti nanti begitu linknya ada.
         id: "teknis-sidapil",
         label: "SIDAPIL",
         path: "/teknis/sidapil",
         icon: MapPinned,
-        type: "developing",
+        type: "sistem",
         description: "Sistem Informasi Daerah Pemilihan (SIDAPIL).",
         meta: {
-          message: "Bentar ya aku cari dulu linknya wkwk",
+          url: "https://script.google.com/macros/s/AKfycbw4aVcZvUcItgwHKjEB_mSPQserxAKaw3WWTCSiBNg2OEcroncTB56-x4CCs7DOBSGexw/exec",
+          buttonLabel: "Buka Aplikasi SIDAPIL",
+          hideButton: true,
+          height: "75vh",
         },
       },
     ],
@@ -191,24 +201,6 @@ export const navigationGroups = [
             url: "https://datastudio.google.com/u/0/reporting/6c3431bb-54a5-49e7-b3fa-3cb0e1c5fb11/page/VS3qF",
           },
         ],
-      },
-      {
-        id: "hukum-laporan-jdih",
-        label: "Laporan JDIH",
-        path: "/hukum/laporan-jdih",
-        icon: ScrollText,
-        type: "dokumen",
-        description: "Laporan pengelolaan Jaringan Dokumentasi dan Informasi Hukum.",
-        meta: { documents: [] },
-      },
-      {
-        id: "hukum-laporan-spip",
-        label: "Laporan SPIP",
-        path: "/hukum/laporan-spip",
-        icon: ClipboardList,
-        type: "dokumen",
-        description: "Laporan Sistem Pengendalian Intern Pemerintah.",
-        meta: { documents: [] },
       },
       {
         id: "hukum-jdih",
@@ -253,20 +245,6 @@ export const navigationGroups = [
       },
     ],
   },
-  {
-    id: "laporan",
-    label: "Laporan",
-    icon: FileSpreadsheet,
-    submenu: [
-      {
-        id: "laporan-2026",
-        label: "Laporan 2026",
-        icon: FileText,
-        external: true,
-        url: "https://script.google.com/macros/s/AKfycbypReHXbOBl5tpJWO1eva3ijhADUdCIAyK9Zg4lG5__3i1UIoOla8uMWrK7Tf9e1MXM/exec",
-      },
-    ],
-  },
 ];
 
 // --- Helper: apakah sebuah item adalah link langsung (bukan rute internal) ---
@@ -296,7 +274,7 @@ function flattenRoutable(items, groupLabel) {
 }
 
 export const flatNavigation = [
-  ...topLevel.map((item) => ({ ...item, group: "Beranda" })),
+  ...topLevel.filter((item) => !isExternalLink(item)).map((item) => ({ ...item, group: "Beranda" })),
   ...navigationGroups.flatMap((group) => flattenRoutable(group.submenu, group.label)),
 ];
 

@@ -18,6 +18,7 @@ import {
 export default function TopNav() {
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const activeGroupId = findActiveGroupId(pathname);
 
   // Tutup menu mobile setiap kali pindah halaman
@@ -29,30 +30,32 @@ export default function TopNav() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo + identitas */}
-        <NavLink to="/" className="flex shrink-0 items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-ink-600 to-ink-900 text-xs font-bold text-gold-400">
-            ST
-          </div>
-          <div className="leading-tight">
-            <p className="text-sm font-bold text-ink-900">SI-Tekhum</p>
-            <p className="hidden text-[10px] text-slate-400 sm:block">KPU Kabupaten</p>
+        <NavLink to="/" className="flex min-w-0 shrink-0 items-center gap-2.5">
+          {logoError ? (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-ink-600 to-ink-900 text-xs font-bold text-gold-400">
+              ST
+            </div>
+          ) : (
+            <img
+              src="/logo-kpu.png"
+              alt="Logo KPU Kabupaten Bondowoso"
+              className="h-9 w-9 shrink-0 object-contain"
+              onError={() => setLogoError(true)}
+            />
+          )}
+          <div className="min-w-0 leading-tight">
+            <p className="text-sm font-bold leading-tight text-ink-900">SI-Tekhum</p>
+            <p className="whitespace-normal text-[10px] leading-tight text-slate-500">
+              KPU Kabupaten Bondowoso
+            </p>
           </div>
         </NavLink>
 
         {/* Menu mendatar — desktop */}
         <nav className="hidden flex-1 items-center gap-1 lg:flex">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              [
-                "rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
-                isActive ? "bg-ink-700 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-ink-900",
-              ].join(" ")
-            }
-          >
-            Beranda
-          </NavLink>
+          {topLevel.map((item) => (
+            <TopLevelLink key={item.id} item={item} />
+          ))}
 
           {navigationGroups.map((group) => (
             <DesktopDropdown key={group.id} group={group} isActiveGroup={group.id === activeGroupId} />
@@ -78,6 +81,39 @@ export default function TopNav() {
 
       {mobileOpen && <MobileMenu pathname={pathname} onClose={() => setMobileOpen(false)} />}
     </header>
+  );
+}
+
+// --- Satu item di topLevel (mis. Beranda, Laporan) — bisa internal atau
+// link langsung (external), sama seperti item di dalam dropdown ---
+function TopLevelLink({ item }) {
+  if (isExternalLink(item)) {
+    return (
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-ink-900"
+      >
+        {item.label}
+        <ArrowUpRight size={13} className="text-slate-400" />
+      </a>
+    );
+  }
+
+  return (
+    <NavLink
+      to={item.path}
+      end
+      className={({ isActive }) =>
+        [
+          "rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+          isActive ? "bg-ink-700 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-ink-900",
+        ].join(" ")
+      }
+    >
+      {item.label}
+    </NavLink>
   );
 }
 
@@ -202,19 +238,36 @@ function MobileMenu({ pathname, onClose }) {
 
   return (
     <div className="max-h-[75vh] overflow-y-auto border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
-      <NavLink
-        to="/"
-        end
-        onClick={onClose}
-        className={({ isActive }) =>
-          [
-            "block rounded-lg px-3 py-2.5 text-sm font-medium",
-            isActive ? "bg-ink-700 text-white" : "text-slate-700 hover:bg-slate-50",
-          ].join(" ")
-        }
-      >
-        Beranda
-      </NavLink>
+      {topLevel.map((item) =>
+        isExternalLink(item) ? (
+          <a
+            key={item.id}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            {item.label}
+            <ArrowUpRight size={13} className="text-slate-400" />
+          </a>
+        ) : (
+          <NavLink
+            key={item.id}
+            to={item.path}
+            end
+            onClick={onClose}
+            className={({ isActive }) =>
+              [
+                "block rounded-lg px-3 py-2.5 text-sm font-medium",
+                isActive ? "bg-ink-700 text-white" : "text-slate-700 hover:bg-slate-50",
+              ].join(" ")
+            }
+          >
+            {item.label}
+          </NavLink>
+        )
+      )}
 
       {navigationGroups.map((group) => {
         const isOpen = openGroups.has(group.id);

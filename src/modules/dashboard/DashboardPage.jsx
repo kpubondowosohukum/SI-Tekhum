@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { findItemById, goToItem } from "../../config/navigation.js";
 import HeroCarousel from "../../components/ui/HeroCarousel.jsx";
 import QuickAccessCard from "../../components/ui/QuickAccessCard.jsx";
-import Card from "../../components/ui/Card.jsx";
-import Badge from "../../components/ui/Badge.jsx";
+import CatatanRapatSection from "./CatatanRapatSection.jsx";
 
 /**
  * Beranda SI-Tekhum — hero banner carousel + grid "Eksplor Layanan".
@@ -97,29 +96,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Card
-        className="mt-10"
-        title="Cara menambah sub-menu baru"
-        description="Struktur navigasi dirancang agar tumbuh tanpa merombak kode yang sudah ada."
-      >
-        <ol className="list-decimal space-y-1.5 pl-5 text-sm text-slate-600">
-          <li>
-            Buka{" "}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
-              src/config/navigation.js
-            </code>
-            , tambahkan satu object baru ke <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">submenu</code>{" "}
-            pada grup yang dituju.
-          </li>
-          <li>
-            Pilih bentuknya: halaman internal (<Badge tone="gold">type</Badge>/
-            <Badge tone="gold">element</Badge>), link langsung (
-            <Badge tone="gold">external: true</Badge>), atau submenu bertingkat (
-            <Badge tone="gold">children</Badge>).
-          </li>
-          <li>Commit &amp; push ke GitHub — deploy otomatis akan memperbarui website.</li>
-        </ol>
-      </Card>
+      <CatatanRapatSection />
     </>
   );
 }

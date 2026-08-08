@@ -1,7 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { flatNavigation } from "../config/navigation.js";
-import PageLoader from "../components/ui/PageLoader.jsx";
+import LoadingScreen from "../components/ui/LoadingScreen.jsx";
 import NotFoundPage from "../modules/dashboard/NotFoundPage.jsx";
 
 const DocumentListPage = lazy(() => import("../modules/shared/DocumentListPage.jsx"));
@@ -30,7 +30,7 @@ const TEMPLATE_BY_TYPE = {
  */
 export default function AppRouter() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<LoadingScreen />}>
       <Routes>
         {flatNavigation.map((item) => {
           const isCustom = Boolean(item.element);

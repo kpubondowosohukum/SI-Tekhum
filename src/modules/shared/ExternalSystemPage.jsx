@@ -2,29 +2,31 @@ import { ExternalLink, AlertTriangle, Link2Off } from "lucide-react";
 import PageHeader from "../../components/ui/PageHeader.jsx";
 import Card from "../../components/ui/Card.jsx";
 import Badge from "../../components/ui/Badge.jsx";
+import IframeLoader from "../../components/ui/IframeLoader.jsx";
 
 /**
  * Template untuk sub-menu type: "sistem"
- * Dipakai oleh: JDIH, Silakon, Simoku, SIKAP, SPIP, dll — sub-menu yang
- * merupakan pintasan/embed ke sistem/dashboard eksternal.
+ * Dipakai oleh: JDIH, Silakon, Simoku, SIKAP, SIDAPIL, Rencana Kinerja, dll.
  *
  * Field yang dibaca dari `menu.meta`:
- *  - url          : (wajib) alamat yang dibuka lewat tombol "Buka di tab baru"
- *  - embedUrl      : (opsional) alamat KHUSUS untuk ditaruh di iframe, kalau
- *                     beda dari `url` (mis. link edit Google Sheets perlu
- *                     diubah ke versi /preview supaya bisa di-embed). Kalau
- *                     kosong, `url` dipakai juga untuk iframe.
+ *  - url          : (wajib) alamat yang dibuka lewat tombol aksi
+ *  - embedUrl      : (opsional) alamat KHUSUS untuk iframe, kalau beda dari
+ *                     `url` (mis. link edit Google Sheets diubah ke /preview)
  *  - buttonLabel   : (opsional) teks tombol, default "Buka di tab baru"
+ *  - hideButton    : (opsional) true = sembunyikan tombol aksi di header,
+ *                     dipakai untuk sub-menu yang memang didesain auto-embed
+ *                     tanpa perlu klik apa pun (mis. Rencana Kinerja, SIDAPIL)
  *  - height        : (opsional) tinggi iframe, default "70vh"
  *
- * Tombol "Buka di tab baru"/label custom SELALU tersedia sebagai fallback,
- * karena banyak sistem (terutama situs pemerintah) mengunci header
- * X-Frame-Options sehingga tidak bisa di-embed langsung.
+ * Loading iframe ditangani oleh <IframeLoader> (lihat komponennya) — sudah
+ * memakai kombinasi event `onLoad` + timer minimum/maksimum supaya animasi
+ * loading selalu terlihat stabil, tidak kedip atau tersangkut.
  */
 export default function ExternalSystemPage({ menu }) {
   const url = menu?.meta?.url;
   const embedUrl = menu?.meta?.embedUrl || url;
   const buttonLabel = menu?.meta?.buttonLabel || "Buka di tab baru";
+  const hideButton = Boolean(menu?.meta?.hideButton);
   const height = menu?.meta?.height || "70vh";
 
   return (
@@ -34,7 +36,7 @@ export default function ExternalSystemPage({ menu }) {
         title={menu?.label}
         description={menu?.description}
         actions={
-          url ? (
+          url && !hideButton ? (
             <a
               href={url}
               target="_blank"
@@ -65,18 +67,10 @@ export default function ExternalSystemPage({ menu }) {
               <AlertTriangle size={14} className="mt-0.5 shrink-0" />
               <p>
                 Sebagian sistem tidak mengizinkan tampilan tertanam (embed). Jika area di bawah
-                kosong/gagal muat, gunakan tombol "{buttonLabel}" di atas.
+                kosong/gagal muat{hideButton ? "" : `, gunakan tombol "${buttonLabel}" di atas`}.
               </p>
             </div>
-            <div className="overflow-hidden rounded-lg border border-slate-200">
-              <iframe
-                src={embedUrl}
-                title={menu?.label}
-                className="w-full"
-                style={{ height }}
-                loading="lazy"
-              />
-            </div>
+            <IframeLoader src={embedUrl} title={menu?.label} height={height} />
           </>
         )}
       </Card>
