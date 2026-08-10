@@ -89,32 +89,69 @@ export const navigationGroups = [
       {
         id: "teknis-hasil-pemilu-2024",
         label: "Hasil Pemilu 2024",
-        path: "/teknis/hasil-pemilu-2024",
         icon: Vote,
-        type: "data",
-        description: "Rekapitulasi hasil Pemilu Anggota DPR, DPD, dan DPRD 2024.",
-        meta: {
-          stats: [
-            { label: "TPS Terekap", value: "—" },
-            { label: "Partisipasi Pemilih", value: "—" },
-            { label: "Status Rekap", value: "Belum terhubung" },
-          ],
-        },
+        description: "Rekapitulasi hasil Pemilu Anggota PPWP, DPR, DPD, dan DPRD 2024.",
+        children: [
+          {
+            id: "ppwp-2024",
+            label: "PPWP Bondowoso 2024",
+            icon: Vote,
+            external: true,
+            url: "https://script.google.com/macros/s/AKfycbxcwJtDV2fE8fmihDJpHCJll0LY6gtVbLix0Hw7bwo1CbovrHc_mhliXvKfWwjolg5V2g/exec",
+          },
+          {
+            id: "dpr-2024",
+            label: "DPR Bondowoso 2024",
+            icon: Vote,
+            external: true,
+            url: "https://script.google.com/macros/s/AKfycbxNe9aVqIEgKGqtfFgY2PmuVh-s8mBlCs1jcOI_H4pZv7qtHkZNXOpRURxcDk5IIa1oZw/exec",
+          },
+          {
+            id: "dpd-2024",
+            label: "DPD Bondowoso 2024",
+            icon: Vote,
+            external: true,
+            url: "https://script.google.com/macros/s/AKfycbwZ_--NxFg7Zrh7trUSoJurCubfwVj0g3EKUxr5NRek35ZAOBw75345XBJYGFyqJMFs-Q/exec",
+          },
+          {
+            id: "dprd-prov-2024",
+            label: "DPRD Provinsi 2024",
+            icon: Vote,
+            external: true,
+            url: "https://script.google.com/macros/s/AKfycbwsKUxWbcmYcBp6beSBaop_eklTrNyn5WHe7OqCSpw0eA7gtSbpmj52GJZp7IAh4-PhNw/exec",
+          },
+          {
+            id: "dprd-kab-2024",
+            label: "DPRD Kabupaten/Kota 2024",
+            icon: Vote,
+            external: true,
+            url: "https://script.google.com/macros/s/AKfycby4EXTZJkl_REiorBH5odkFvp5-qXAs8-sJc3elfSrVGsp-_lNtGV8yv5S3_QB5tCf9SA/exec",
+          },
+        ],
       },
       {
         id: "teknis-hasil-pemilihan-2024",
-        label: "Hasil Pemilihan 2024",
+        label: "Hasil Pilkada 2024",
         path: "/teknis/hasil-pemilihan-2024",
         icon: Building2,
         type: "data",
         description: "Rekapitulasi hasil Pemilihan Bupati/Wakil Bupati 2024.",
-        meta: {
-          stats: [
-            { label: "TPS Terekap", value: "—" },
-            { label: "Partisipasi Pemilih", value: "—" },
-            { label: "Status Rekap", value: "Belum terhubung" },
-          ],
-        },
+        children: [
+          {
+            id: "pilgub-2024",
+            label: "Pemilihan Gubernur Bondowoso 2024",
+            icon: Vote,
+            external: true,
+            url: "https://script.google.com/macros/s/AKfycbzckeYSpJOUpMclbPFIln6sQgi6I1UEXTqw9UvxLFgvMTV0Gm8eOl8XbnQSP5f1OYQ/exec",
+          },
+          {
+            id: "pilbub-2024",
+            label: "Pemilihan Bupati Bondowoso 2024",
+            icon: Vote,
+            external: true,
+            url: "https://script.google.com/macros/s/AKfycbyqp2mIV66UsHcVm095XS7izefZGG3skZkDEIfzqXr9WAt0sHvczpQ27JQb0qYuodv6/exec",
+          },
+        ],
       },
       {
         id: "teknis-pemutakhiran-parpol",
@@ -132,16 +169,9 @@ export const navigationGroups = [
       {
         id: "teknis-sidapil",
         label: "SIDAPIL",
-        path: "/teknis/sidapil",
         icon: MapPinned,
-        type: "sistem",
-        description: "Sistem Informasi Daerah Pemilihan (SIDAPIL).",
-        meta: {
-          url: "https://script.google.com/macros/s/AKfycbw4aVcZvUcItgwHKjEB_mSPQserxAKaw3WWTCSiBNg2OEcroncTB56-x4CCs7DOBSGexw/exec",
-          buttonLabel: "Buka Aplikasi SIDAPIL",
-          hideButton: true,
-          height: "75vh",
-        },
+        external: true,
+        url: "https://script.google.com/macros/s/AKfycbw4aVcZvUcItgwHKjEB_mSPQserxAKaw3WWTCSiBNg2OEcroncTB56-x4CCs7DOBSGexw/exec",
       },
     ],
   },
@@ -152,8 +182,6 @@ export const navigationGroups = [
     description: "Produk hukum, dokumen resmi, dan layanan konsultasi hukum.",
     submenu: [
       {
-        // Submenu bertingkat: "Berita Acara (BA)" punya 2 anak, keduanya
-        // link langsung ke sistem luar.
         id: "hukum-ba",
         label: "Berita Acara (BA)",
         icon: FileCheck2,
@@ -226,21 +254,11 @@ export const navigationGroups = [
       {
         id: "kinerja-rencana",
         label: "Rencana Kinerja",
-        path: "/kinerja/rencana-kinerja",
         icon: ClipboardList,
-        type: "sistem",
-        description: "Dokumen perencanaan kinerja tahunan Subbagian Tekhum.",
-        meta: {
-          url: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/edit?usp=sharing",
-          embedUrl: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/preview",
-          hideButton: true,
-          height: "75vh",
-        },
+        external: true,
+        url: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/edit?usp=sharing",
       },
       {
-        // Link langsung ke Google Apps Script Web App (bukan lagi halaman
-        // tabel internal). Lihat catatan di README bagian "Laporan Kinerja"
-        // soal konsekuensi perubahan ini.
         id: "kinerja-laporan",
         label: "Laporan Kinerja",
         icon: FileText,
@@ -308,10 +326,7 @@ export function findActiveGroupId(pathname) {
 }
 
 // Cari satu item menu (di mana pun posisinya — top level, submenu, atau
-// bersarang di dalam children) berdasarkan id-nya. Dipakai oleh komponen
-// presentasi (mis. hero carousel, grid quick-access di Beranda) supaya
-// mereka TIDAK PERNAH menyalin ulang URL/label — selalu ambil langsung dari
-// satu sumber data ini.
+// bersarang di dalam children) berdasarkan id-nya.
 function searchById(items, id) {
   for (const item of items) {
     if (item.id === id) return item;
@@ -333,9 +348,7 @@ export function findItemById(id) {
   return null;
 }
 
-// Menentukan tujuan klik untuk sebuah GRUP menu (dipakai kartu "Menu Utama"
-// di Beranda, yang mewakili satu grup, bukan satu sub-menu spesifik) —
-// mengambil item pertama yang bisa langsung dituju (internal atau external).
+// Menentukan tujuan klik untuk sebuah GRUP menu
 export function getGroupEntryPoint(group) {
   for (const item of group.submenu) {
     if (hasChildren(item)) {
@@ -347,8 +360,7 @@ export function getGroupEntryPoint(group) {
   return null;
 }
 
-// Navigasi ke sebuah item menu: kalau external, buka tab baru; kalau
-// halaman internal, pindah rute lewat react-router `navigate`.
+// Navigasi ke sebuah item menu
 export function goToItem(item, navigate) {
   if (!item) return;
   if (isExternalLink(item)) {
