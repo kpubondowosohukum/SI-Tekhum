@@ -73,6 +73,7 @@ export const topLevel = [
     id: "laporan",
     label: "Laporan",
     icon: FileSpreadsheet,
+    description: "Akses cepat ke laporan konsolidasi tahun berjalan.",
     external: true,
     url: "https://script.google.com/macros/s/AKfycbypReHXbOBl5tpJWO1eva3ijhADUdCIAyK9Zg4lG5__3i1UIoOla8uMWrK7Tf9e1MXM/exec",
   },
@@ -80,40 +81,10 @@ export const topLevel = [
 
 export const navigationGroups = [
   {
-    id: "kinerja",
-    label: "Kinerja",
-    icon: TrendingUp,
-    submenu: [
-      {
-        id: "kinerja-rencana",
-        label: "Rencana Kinerja",
-        path: "/kinerja/rencana-kinerja",
-        icon: ClipboardList,
-        type: "sistem",
-        description: "Dokumen perencanaan kinerja tahunan Subbagian Tekhum.",
-        meta: {
-          url: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/edit?usp=sharing",
-          embedUrl: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/preview",
-          hideButton: true,
-          height: "75vh",
-        },
-      },
-      {
-        // Link langsung ke Google Apps Script Web App (bukan lagi halaman
-        // tabel internal). Lihat catatan di README bagian "Laporan Kinerja"
-        // soal konsekuensi perubahan ini.
-        id: "kinerja-laporan",
-        label: "Laporan Kinerja",
-        icon: FileText,
-        external: true,
-        url: "https://script.google.com/macros/s/AKfycbymKKzYGt7-19NnZMUWvzhTVwUFxgENRCGURasNjXyMjJ6Hep7EqIREeQMD3bpXUbDq2A/exec",
-      },
-    ],
-  },
-  {
     id: "teknis",
     label: "Teknis",
     icon: Vote,
+    description: "Data hasil pemilu, pemilihan, dan alat teknis kepemiluan.",
     submenu: [
       {
         id: "teknis-hasil-pemilu-2024",
@@ -178,6 +149,7 @@ export const navigationGroups = [
     id: "hukum",
     label: "Hukum",
     icon: Scale,
+    description: "Produk hukum, dokumen resmi, dan layanan konsultasi hukum.",
     submenu: [
       {
         // Submenu bertingkat: "Berita Acara (BA)" punya 2 anak, keduanya
@@ -242,6 +214,38 @@ export const navigationGroups = [
         icon: Database,
         external: true,
         url: "https://datastudio.google.com/u/0/reporting/c3ddcb09-0287-405e-97f0-c3486c2eca7e/page/iCBrF",
+      },
+    ],
+  },
+  {
+    id: "kinerja",
+    label: "Kinerja",
+    icon: TrendingUp,
+    description: "Rencana dan laporan capaian kinerja Subbagian Tekhum.",
+    submenu: [
+      {
+        id: "kinerja-rencana",
+        label: "Rencana Kinerja",
+        path: "/kinerja/rencana-kinerja",
+        icon: ClipboardList,
+        type: "sistem",
+        description: "Dokumen perencanaan kinerja tahunan Subbagian Tekhum.",
+        meta: {
+          url: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/edit?usp=sharing",
+          embedUrl: "https://docs.google.com/spreadsheets/d/1XS3XFoe7CgUv34R_oouI-LzDrIGq7yZ22UhMlYNX294/preview",
+          hideButton: true,
+          height: "75vh",
+        },
+      },
+      {
+        // Link langsung ke Google Apps Script Web App (bukan lagi halaman
+        // tabel internal). Lihat catatan di README bagian "Laporan Kinerja"
+        // soal konsekuensi perubahan ini.
+        id: "kinerja-laporan",
+        label: "Laporan Kinerja",
+        icon: FileText,
+        external: true,
+        url: "https://script.google.com/macros/s/AKfycbymKKzYGt7-19NnZMUWvzhTVwUFxgENRCGURasNjXyMjJ6Hep7EqIREeQMD3bpXUbDq2A/exec",
       },
     ],
   },
@@ -325,6 +329,20 @@ export function findItemById(id) {
   for (const group of navigationGroups) {
     const found = searchById(group.submenu, id);
     if (found) return found;
+  }
+  return null;
+}
+
+// Menentukan tujuan klik untuk sebuah GRUP menu (dipakai kartu "Menu Utama"
+// di Beranda, yang mewakili satu grup, bukan satu sub-menu spesifik) —
+// mengambil item pertama yang bisa langsung dituju (internal atau external).
+export function getGroupEntryPoint(group) {
+  for (const item of group.submenu) {
+    if (hasChildren(item)) {
+      if (item.children.length > 0) return item.children[0];
+      continue;
+    }
+    return item;
   }
   return null;
 }

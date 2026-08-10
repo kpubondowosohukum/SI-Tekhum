@@ -21,6 +21,12 @@ export default function TopNav() {
   const [logoError, setLogoError] = useState(false);
   const activeGroupId = findActiveGroupId(pathname);
 
+  // Beranda selalu tampil paling kiri; item topLevel lain (mis. "Laporan")
+  // tampil paling kanan, SETELAH semua dropdown grup — supaya urutan menu
+  // jadi: Beranda -> (semua grup sesuai urutan navigationGroups) -> Laporan.
+  const beranda = topLevel.find((item) => item.id === "beranda");
+  const topLevelSisanya = topLevel.filter((item) => item.id !== "beranda");
+
   // Tutup menu mobile setiap kali pindah halaman
   useEffect(() => {
     setMobileOpen(false);
@@ -53,12 +59,14 @@ export default function TopNav() {
 
         {/* Menu mendatar — desktop */}
         <nav className="hidden flex-1 items-center gap-1 lg:flex">
-          {topLevel.map((item) => (
-            <TopLevelLink key={item.id} item={item} />
-          ))}
+          {beranda && <TopLevelLink item={beranda} />}
 
           {navigationGroups.map((group) => (
             <DesktopDropdown key={group.id} group={group} isActiveGroup={group.id === activeGroupId} />
+          ))}
+
+          {topLevelSisanya.map((item) => (
+            <TopLevelLink key={item.id} item={item} />
           ))}
         </nav>
 
@@ -215,6 +223,9 @@ function DropdownRow({ item, onNavigate }) {
 
 // --- Menu mobile (hamburger) — accordion vertikal, tampil di bawah header ---
 function MobileMenu({ pathname, onClose }) {
+  const beranda = topLevel.find((item) => item.id === "beranda");
+  const topLevelSisanya = topLevel.filter((item) => item.id !== "beranda");
+
   const [openGroups, setOpenGroups] = useState(() => {
     const active = findActiveGroupId(pathname);
     return active ? new Set([active]) : new Set();
@@ -238,35 +249,20 @@ function MobileMenu({ pathname, onClose }) {
 
   return (
     <div className="max-h-[75vh] overflow-y-auto border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
-      {topLevel.map((item) =>
-        isExternalLink(item) ? (
-          <a
-            key={item.id}
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            {item.label}
-            <ArrowUpRight size={13} className="text-slate-400" />
-          </a>
-        ) : (
-          <NavLink
-            key={item.id}
-            to={item.path}
-            end
-            onClick={onClose}
-            className={({ isActive }) =>
-              [
-                "block rounded-lg px-3 py-2.5 text-sm font-medium",
-                isActive ? "bg-ink-700 text-white" : "text-slate-700 hover:bg-slate-50",
-              ].join(" ")
-            }
-          >
-            {item.label}
-          </NavLink>
-        )
+      {beranda && (
+        <NavLink
+          to={beranda.path}
+          end
+          onClick={onClose}
+          className={({ isActive }) =>
+            [
+              "block rounded-lg px-3 py-2.5 text-sm font-medium",
+              isActive ? "bg-ink-700 text-white" : "text-slate-700 hover:bg-slate-50",
+            ].join(" ")
+          }
+        >
+          {beranda.label}
+        </NavLink>
       )}
 
       {navigationGroups.map((group) => {
@@ -299,6 +295,37 @@ function MobileMenu({ pathname, onClose }) {
           </div>
         );
       })}
+
+      {topLevelSisanya.map((item) =>
+        isExternalLink(item) ? (
+          <a
+            key={item.id}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="mt-1 flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            {item.label}
+            <ArrowUpRight size={13} className="text-slate-400" />
+          </a>
+        ) : (
+          <NavLink
+            key={item.id}
+            to={item.path}
+            end
+            onClick={onClose}
+            className={({ isActive }) =>
+              [
+                "mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium",
+                isActive ? "bg-ink-700 text-white" : "text-slate-700 hover:bg-slate-50",
+              ].join(" ")
+            }
+          >
+            {item.label}
+          </NavLink>
+        )
+      )}
     </div>
   );
 }

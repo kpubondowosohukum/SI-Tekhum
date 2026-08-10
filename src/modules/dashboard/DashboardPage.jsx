@@ -1,17 +1,17 @@
 import { useNavigate } from "react-router-dom";
-import { findItemById, goToItem } from "../../config/navigation.js";
+import { navigationGroups, topLevel, findItemById, goToItem } from "../../config/navigation.js";
 import HeroCarousel from "../../components/ui/HeroCarousel.jsx";
-import QuickAccessCard from "../../components/ui/QuickAccessCard.jsx";
+import MenuOverviewCard from "../../components/ui/MenuOverviewCard.jsx";
 import CatatanRapatSection from "./CatatanRapatSection.jsx";
 
 /**
- * Beranda SI-Tekhum — hero banner carousel + grid "Eksplor Layanan".
+ * Beranda SI-Tekhum — hero banner carousel + 4 kartu "Menu Utama" + catatan
+ * rapat.
  *
- * PENTING: halaman ini TIDAK menyimpan URL/label sendiri. Semua tujuan klik
- * (slide carousel maupun kartu quick-access) diambil lewat `findItemById()`
- * dari src/config/navigation.js — satu-satunya sumber data menu. Kalau
- * suatu saat sebuah link diperbarui di navigation.js, halaman ini otomatis
- * ikut ter-update tanpa perlu disentuh.
+ * PENTING: halaman ini TIDAK menyimpan URL/label sendiri. Data hero carousel
+ * diambil lewat `findItemById()` dari src/config/navigation.js — satu-
+ * satunya sumber data menu. Kartu "Eksplor Layanan Tekhum" murni kartu
+ * informasi (bukan tautan), jadi hanya mengambil label/deskripsi/ikon.
  */
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -57,18 +57,34 @@ export default function DashboardPage() {
     })
     .filter(Boolean);
 
-  const quickAccessIds = [
-    { id: "kinerja-laporan", accent: "bg-amber-500/15 text-amber-700" },
-    { id: "hukum-silakon", accent: "bg-blue-600/10 text-blue-700" },
-    { id: "hukum-simoku", accent: "bg-purple-600/10 text-purple-700" },
-    { id: "hukum-jdih", accent: "bg-ink-700/10 text-ink-700" },
-    { id: "hukum-medsos-jdih", accent: "bg-pink-600/10 text-pink-700" },
-    { id: "hukum-ba-sikap", accent: "bg-emerald-600/10 text-emerald-700" },
+  // 4 kartu "Menu Utama" (murni informasi, tidak bisa diklik): 3 grup
+  // (Kinerja, Teknis, Hukum) + 1 menu mandiri (Laporan).
+  const menuUtamaCards = [
+    { group: navigationGroups.find((g) => g.id === "kinerja"), accent: "bg-amber-500/15 text-amber-700" },
+    { group: navigationGroups.find((g) => g.id === "teknis"), accent: "bg-blue-600/10 text-blue-700" },
+    { group: navigationGroups.find((g) => g.id === "hukum"), accent: "bg-ink-700/10 text-ink-700" },
+    { item: topLevel.find((i) => i.id === "laporan"), accent: "bg-purple-600/10 text-purple-700" },
   ]
-    .map(({ id, accent }) => {
-      const item = findItemById(id);
-      if (!item) return null;
-      return { item, accent };
+    .map(({ group, item, accent }) => {
+      if (group) {
+        return {
+          key: group.id,
+          label: group.label,
+          description: group.description,
+          Icon: group.icon,
+          accent,
+        };
+      }
+      if (item) {
+        return {
+          key: item.id,
+          label: item.label,
+          description: item.description,
+          Icon: item.icon,
+          accent,
+        };
+      }
+      return null;
     })
     .filter(Boolean);
 
@@ -79,18 +95,18 @@ export default function DashboardPage() {
       <div className="mt-10">
         <div className="mb-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-gold-600">Eksplor</p>
-          <h2 className="text-xl font-bold text-ink-900">Eksplor Layanan SI-Tekhum</h2>
-          <p className="mt-1 text-sm text-slate-500">Akses cepat ke layanan yang paling sering digunakan.</p>
+          <h2 className="text-xl font-bold text-ink-900">Eksplor Layanan Tekhum</h2>
+          <p className="mt-1 text-sm text-slate-500">Empat menu utama SI-Tekhum, akses langsung dari sini.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {quickAccessIds.map(({ item, accent }) => (
-            <QuickAccessCard
-              key={item.id}
-              label={item.label}
-              Icon={item.icon}
-              accent={accent}
-              onClick={() => goToItem(item, navigate)}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {menuUtamaCards.map((card) => (
+            <MenuOverviewCard
+              key={card.key}
+              label={card.label}
+              description={card.description}
+              Icon={card.Icon}
+              accent={card.accent}
             />
           ))}
         </div>
