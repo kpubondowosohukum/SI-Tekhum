@@ -8,6 +8,7 @@ import {
   isExternalLink,
   hasChildren,
 } from "../../config/navigation.js";
+import logoKpu from "../../assets/logo-kpu.png";
 
 export default function Sidebar({ open, onClose }) {
   const { pathname } = useLocation();
@@ -70,7 +71,7 @@ export default function Sidebar({ open, onClose }) {
               </div>
             ) : (
               <img
-                src="/logo-kpu.png"
+                src={logoKpu}
                 alt="Logo KPU Kabupaten Bondowoso"
                 className="h-10 w-10 shrink-0 object-contain"
                 onError={() => setLogoError(true)}

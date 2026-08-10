@@ -8,26 +8,17 @@ import {
   isExternalLink,
   hasChildren,
 } from "../../config/navigation.js";
+import logoKpu from "../../assets/logo-kpu.png";
 
-/**
- * Top Navbar — menggantikan Sidebar kiri. Struktur menu (grup + submenu +
- * nested children + link langsung) TIDAK berubah sama sekali dari
- * navigation.js; komponen ini hanya mengubah CARA menampilkannya (mendatar
- * di atas, dropdown saat hover/klik) alih-alih sebagai panel di kiri.
- */
 export default function TopNav() {
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const activeGroupId = findActiveGroupId(pathname);
 
-  // Beranda selalu tampil paling kiri; item topLevel lain (mis. "Laporan")
-  // tampil paling kanan, SETELAH semua dropdown grup — supaya urutan menu
-  // jadi: Beranda -> (semua grup sesuai urutan navigationGroups) -> Laporan.
   const beranda = topLevel.find((item) => item.id === "beranda");
   const topLevelSisanya = topLevel.filter((item) => item.id !== "beranda");
 
-  // Tutup menu mobile setiap kali pindah halaman
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
@@ -43,7 +34,7 @@ export default function TopNav() {
             </div>
           ) : (
             <img
-              src="/logo-kpu.png"
+              src={logoKpu}
               alt="Logo KPU Kabupaten Bondowoso"
               className="h-9 w-9 shrink-0 object-contain"
               onError={() => setLogoError(true)}
@@ -92,8 +83,6 @@ export default function TopNav() {
   );
 }
 
-// --- Satu item di topLevel (mis. Beranda, Laporan) — bisa internal atau
-// link langsung (external), sama seperti item di dalam dropdown ---
 function TopLevelLink({ item }) {
   if (isExternalLink(item)) {
     return (
@@ -125,11 +114,9 @@ function TopLevelLink({ item }) {
   );
 }
 
-// --- Dropdown desktop untuk satu menu utama (hover ATAU klik) ---
 function DesktopDropdown({ group, isActiveGroup }) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
-  const GroupIcon = group.icon;
 
   function openNow() {
     clearTimeout(closeTimer.current);
@@ -166,9 +153,6 @@ function DesktopDropdown({ group, isActiveGroup }) {
   );
 }
 
-// Satu baris di dalam panel dropdown — bisa link internal, link langsung
-// (external, langsung buka tab baru), atau grup bertingkat (mis. "Berita
-// Acara (BA)") yang anak-anaknya ditampilkan terindentasi di bawahnya.
 function DropdownRow({ item, onNavigate }) {
   const Icon = item.icon;
 
@@ -221,7 +205,6 @@ function DropdownRow({ item, onNavigate }) {
   );
 }
 
-// --- Menu mobile (hamburger) — accordion vertikal, tampil di bawah header ---
 function MobileMenu({ pathname, onClose }) {
   const beranda = topLevel.find((item) => item.id === "beranda");
   const topLevelSisanya = topLevel.filter((item) => item.id !== "beranda");
@@ -280,7 +263,7 @@ function MobileMenu({ pathname, onClose }) {
             </button>
 
             {isOpen && (
-              <div className="ml-3 space-y-0.5 border-l border-slate-100 pl-3 py-1">
+              <div className="ml-3 space-y-0.5 border-l border-slate-100 py-1 pl-3">
                 {group.submenu.map((item) => (
                   <MobileRow
                     key={item.id}
@@ -341,7 +324,7 @@ function MobileRow({ item, onNavigate, isSubOpen, onToggleSub }) {
           className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-slate-600 hover:bg-slate-50"
         >
           <Icon size={15} className="shrink-0" />
-          <span className="flex-1 text-left truncate">{item.label}</span>
+          <span className="flex-1 truncate text-left">{item.label}</span>
           <ChevronDown size={13} className={`transition-transform ${isSubOpen ? "rotate-180" : ""}`} />
         </button>
         {isSubOpen && (
