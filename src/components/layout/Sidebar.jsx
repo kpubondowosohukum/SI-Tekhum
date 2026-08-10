@@ -11,6 +11,7 @@ import {
 
 export default function Sidebar({ open, onClose }) {
   const { pathname } = useLocation();
+  const [logoError, setLogoError] = useState(false);
 
   // Grup menu utama yang sedang terbuka.
   const [openGroups, setOpenGroups] = useState(() => {
@@ -63,9 +64,18 @@ export default function Sidebar({ open, onClose }) {
       >
         <div className="flex items-center justify-between px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-ink-600 to-ink-800 text-sm font-bold text-gold-400 ring-1 ring-white/10">
-              ST
-            </div>
+            {logoError ? (
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-ink-600 to-ink-800 text-sm font-bold text-gold-400 ring-1 ring-white/10">
+                ST
+              </div>
+            ) : (
+              <img
+                src="/logo-kpu.png"
+                alt="Logo KPU Kabupaten Bondowoso"
+                className="h-10 w-10 shrink-0 object-contain"
+                onError={() => setLogoError(true)}
+              />
+            )}
             <div className="leading-tight">
               <p className="text-sm font-semibold text-white">SI-Tekhum</p>
               <p className="text-xs text-slate-400">KPU Kabupaten</p>
@@ -176,13 +186,9 @@ export default function Sidebar({ open, onClose }) {
   );
 }
 
-// Merender satu baris submenu — bisa berupa: link internal biasa, link
-// langsung (external, WAJIB membuka URL saat diklik tanpa perantara), atau
-// grup bertingkat dengan anak-anaknya sendiri.
 function SubmenuItem({ item, pathname, onNavigate, isSubOpen, onToggleSub }) {
   const { label, icon: Icon } = item;
 
-  // (3) Submenu bertingkat — punya children sendiri.
   if (hasChildren(item)) {
     return (
       <li>
@@ -220,8 +226,6 @@ function SubmenuItem({ item, pathname, onNavigate, isSubOpen, onToggleSub }) {
     );
   }
 
-  // (2) Link langsung — langsung membuka URL eksternal, tanpa halaman
-  // perantara. Dibuka di tab baru supaya SI-Tekhum tetap terbuka.
   if (isExternalLink(item)) {
     return (
       <li>
@@ -240,7 +244,6 @@ function SubmenuItem({ item, pathname, onNavigate, isSubOpen, onToggleSub }) {
     );
   }
 
-  // (1) Halaman internal biasa.
   return (
     <li>
       <NavLink
