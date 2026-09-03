@@ -9,6 +9,7 @@ const DataResultPage = lazy(() => import("../modules/shared/DataResultPage.jsx")
 const ExternalSystemPage = lazy(() => import("../modules/shared/ExternalSystemPage.jsx"));
 const PlaceholderPage = lazy(() => import("../modules/shared/PlaceholderPage.jsx"));
 const UnderDevelopmentPage = lazy(() => import("../modules/shared/UnderDevelopmentPage.jsx"));
+const EmbeddedViewerPage = lazy(() => import("../modules/shared/EmbeddedViewerPage.jsx"));
 
 // Peta type -> komponen template. Tambahkan tipe baru di sini kalau suatu
 // saat butuh kategori template lain (mis. "chart", "kalender", dst).
@@ -32,6 +33,10 @@ export default function AppRouter() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        {/* Rute statis untuk viewer link eksternal saat mode standalone PWA
+            (lihat EmbeddedViewerPage.jsx + hooks/useIsStandalone.js) */}
+        <Route path="/buka/:id" element={<EmbeddedViewerPage />} />
+
         {flatNavigation.map((item) => {
           const isCustom = Boolean(item.element);
           const Element = item.element ?? TEMPLATE_BY_TYPE[item.type] ?? PlaceholderPage;

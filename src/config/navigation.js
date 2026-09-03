@@ -361,10 +361,23 @@ export function getGroupEntryPoint(group) {
 }
 
 // Navigasi ke sebuah item menu
+// Navigasi ke sebuah item menu: kalau external DAN aplikasi berjalan
+// sebagai website biasa di browser -> buka tab baru (perilaku lama).
+// Kalau external DAN aplikasi sedang berjalan standalone (PWA ter-install)
+// -> tetap di dalam shell lewat viewer internal "/buka/:id" (lihat
+// EmbeddedViewerPage.jsx + hooks/useIsStandalone.js), supaya pengguna tidak
+// "terlempar" ke Chrome/Safari. Kalau internal, pindah rute seperti biasa.
 export function goToItem(item, navigate) {
   if (!item) return;
   if (isExternalLink(item)) {
-    window.open(item.url, "_blank", "noopener,noreferrer");
+    const isStandalone =
+      typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator?.standalone === true);
+    if (isStandalone) {
+      navigate(`/buka/${item.id}`);
+    } else {
+      window.open(item.url, "_blank", "noopener,noreferrer");
+    }
   } else if (item.path) {
     navigate(item.path);
   }

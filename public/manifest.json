@@ -1,0 +1,40 @@
+{
+  "name": "SI-Tekhum - Sistem Informasi Teknis dan Hukum",
+  "short_name": "SI-Tekhum",
+  "description": "Portal internal Kinerja, Teknis, Hukum, dan Laporan Subbagian Teknis dan Hukum KPU Kabupaten Bondowoso.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F6F7FA",
+  "theme_color": "#1C3661",
+  "lang": "id",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

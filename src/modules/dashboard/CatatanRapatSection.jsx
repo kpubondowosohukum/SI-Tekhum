@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NotebookPen, Plus, Trash2, X, CalendarDays, Check } from "lucide-react";
+import { NotebookPen, Plus, Pencil, Trash2, X, CalendarDays, Check } from "lucide-react";
 import Card from "../../components/ui/Card.jsx";
 
 const STORAGE_KEY = "si-tekhum:catatan-rapat";
@@ -48,27 +48,49 @@ function warnaCardClass(warnaId) {
 
 /**
  * Section "Catatan Hasil Rapat Tekhum" di Beranda — kartu-kartu disusun
- * mendatar (scroll horizontal), masing-masing bisa diberi warna latar
- * sesuai pilihan pengguna saat menambah catatan.
+ * mendatar (scroll horizontal), masing-masing punya tombol Edit & Hapus,
+ * dan bisa diberi warna latar sesuai pilihan pengguna.
  */
 export default function CatatanRapatSection() {
   const [catatan, setCatatan] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  // null = mode tambah baru; object = mode edit (berisi catatan yang diedit)
+  const [editTarget, setEditTarget] = useState(null);
 
   useEffect(() => {
     setCatatan(loadCatatan());
   }, []);
 
-  function tambahCatatan(baru) {
+  function bukaFormTambah() {
+    setEditTarget(null);
+    setFormOpen(true);
+  }
+
+  function bukaFormEdit(note) {
+    setEditTarget(note);
+    setFormOpen(true);
+  }
+
+  function tutupForm() {
+    setFormOpen(false);
+    setEditTarget(null);
+  }
+
+  // Dipakai untuk mode tambah MAUPUN edit — dibedakan lewat ada/tidaknya `id`.
+  function simpanCatatan(data) {
     setCatatan((prev) => {
-      const next = [{ id: crypto.randomUUID?.() || String(Date.now()), ...baru }, ...prev];
+      const next = data.id
+        ? prev.map((c) => (c.id === data.id ? { ...c, ...data } : c))
+        : [{ id: crypto.randomUUID?.() || String(Date.now()), ...data }, ...prev];
       saveCatatan(next);
       return next;
     });
-    setModalOpen(false);
+    tutupForm();
   }
 
-  function hapusCatatan(id) {
+  function hapusCatatan(id, judul) {
+    const yakin = window.confirm(`Apakah Anda yakin ingin menghapus catatan "${judul}"?`);
+    if (!yakin) return;
     setCatatan((prev) => {
       const next = prev.filter((c) => c.id !== id);
       saveCatatan(next);
@@ -89,7 +111,7 @@ export default function CatatanRapatSection() {
           </p>
         </div>
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={bukaFormTambah}
           className="flex shrink-0 items-center gap-1.5 rounded-lg bg-ink-700 px-3.5 py-2 text-sm font-medium text-white hover:bg-ink-600"
         >
           <Plus size={16} />
@@ -114,46 +136,67 @@ export default function CatatanRapatSection() {
               key={c.id}
               className={`group relative flex w-72 shrink-0 flex-col rounded-xl2 border p-5 ${warnaCardClass(c.warna)}`}
             >
-              <button
-                onClick={() => hapusCatatan(c.id)}
-                aria-label={`Hapus catatan ${c.judul}`}
-                className="absolute right-3 top-3 rounded-md p-1 text-slate-400 opacity-0 transition-opacity hover:bg-black/5 hover:text-red-600 group-hover:opacity-100"
-              >
-                <Trash2 size={15} />
-              </button>
+              <div className="absolute right-3 top-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  onClick={() => bukaFormEdit(c)}
+                  aria-label={`Edit catatan ${c.judul}`}
+                  className="rounded-md p-1 text-slate-400 hover:bg-black/5 hover:text-ink-700"
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  onClick={() => hapusCatatan(c.id, c.judul)}
+                  aria-label={`Hapus catatan ${c.judul}`}
+                  className="rounded-md p-1 text-slate-400 hover:bg-black/5 hover:text-red-600"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
               <div className="mb-2 flex items-center gap-1.5 text-xs text-slate-500">
                 <CalendarDays size={13} />
                 {formatTanggal(c.tanggal)}
               </div>
-              <h3 className="pr-6 text-sm font-semibold text-ink-900">{c.judul}</h3>
+              <h3 className="pr-10 text-sm font-semibold text-ink-900">{c.judul}</h3>
               <p className="mt-2 line-clamp-4 text-sm text-slate-600">{c.isi}</p>
             </div>
           ))}
         </div>
       )}
 
-      {modalOpen && <FormModal onClose={() => setModalOpen(false)} onSubmit={tambahCatatan} />}
+      {formOpen && <FormModal initial={editTarget} onClose={tutupForm} onSubmit={simpanCatatan} />}
     </div>
   );
 }
 
-function FormModal({ onClose, onSubmit }) {
-  const [tanggal, setTanggal] = useState(() => new Date().toISOString().slice(0, 10));
-  const [judul, setJudul] = useState("");
-  const [isi, setIsi] = useState("");
-  const [warna, setWarna] = useState(DEFAULT_WARNA);
+// `initial`: null saat mode tambah baru, atau object catatan saat mode edit
+// (form otomatis terisi/pre-filled dari data itu).
+function FormModal({ initial, onClose, onSubmit }) {
+  const isEdit = Boolean(initial);
+
+  const [tanggal, setTanggal] = useState(initial?.tanggal || new Date().toISOString().slice(0, 10));
+  const [judul, setJudul] = useState(initial?.judul || "");
+  const [isi, setIsi] = useState(initial?.isi || "");
+  const [warna, setWarna] = useState(initial?.warna || DEFAULT_WARNA);
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!judul.trim() || !isi.trim()) return;
-    onSubmit({ tanggal, judul: judul.trim(), isi: isi.trim(), warna });
+    onSubmit({
+      id: initial?.id, // undefined saat tambah baru -> ditangani sebagai catatan baru
+      tanggal,
+      judul: judul.trim(),
+      isi: isi.trim(),
+      warna,
+    });
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/40 p-4">
       <div className="w-full max-w-lg rounded-xl2 bg-white p-6 shadow-card">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-ink-900">Tambah Catatan Rapat</h2>
+          <h2 className="text-base font-semibold text-ink-900">
+            {isEdit ? "Edit Catatan Rapat" : "Tambah Catatan Rapat"}
+          </h2>
           <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
             <X size={18} />
           </button>
@@ -231,7 +274,7 @@ function FormModal({ onClose, onSubmit }) {
               type="submit"
               className="rounded-lg bg-ink-700 px-4 py-2 text-sm font-medium text-white hover:bg-ink-600"
             >
-              Simpan Catatan
+              {isEdit ? "Simpan Perubahan" : "Simpan Catatan"}
             </button>
           </div>
         </form>

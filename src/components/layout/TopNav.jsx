@@ -8,6 +8,7 @@ import {
   isExternalLink,
   hasChildren,
 } from "../../config/navigation.js";
+import { useIsStandalone } from "../../hooks/useIsStandalone.js";
 import logoKpu from "../../assets/logo-kpu.png";
 
 export default function TopNav() {
@@ -15,6 +16,13 @@ export default function TopNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const activeGroupId = findActiveGroupId(pathname);
+
+  // Saat aplikasi berjalan sebagai PWA ter-install (standalone), link
+  // eksternal (JDIH, Silakon, Simoku, SIKAP, dst) dialihkan ke viewer
+  // internal ("/buka/:id") alih-alih tab baru — supaya pengguna tidak
+  // "terlempar" keluar dari shell aplikasi. Saat dibuka sebagai website
+  // biasa di browser, perilakunya tetap seperti semula (tab baru).
+  const isStandalone = useIsStandalone();
 
   const beranda = topLevel.find((item) => item.id === "beranda");
   const topLevelSisanya = topLevel.filter((item) => item.id !== "beranda");
@@ -50,14 +58,19 @@ export default function TopNav() {
 
         {/* Menu mendatar — desktop */}
         <nav className="hidden flex-1 items-center gap-1 lg:flex">
-          {beranda && <TopLevelLink item={beranda} />}
+          {beranda && <TopLevelLink item={beranda} isStandalone={isStandalone} />}
 
           {navigationGroups.map((group) => (
-            <DesktopDropdown key={group.id} group={group} isActiveGroup={group.id === activeGroupId} />
+            <DesktopDropdown
+              key={group.id}
+              group={group}
+              isActiveGroup={group.id === activeGroupId}
+              isStandalone={isStandalone}
+            />
           ))}
 
           {topLevelSisanya.map((item) => (
-            <TopLevelLink key={item.id} item={item} />
+            <TopLevelLink key={item.id} item={item} isStandalone={isStandalone} />
           ))}
         </nav>
 
@@ -78,13 +91,36 @@ export default function TopNav() {
         </div>
       </div>
 
-      {mobileOpen && <MobileMenu pathname={pathname} onClose={() => setMobileOpen(false)} />}
+      {mobileOpen && (
+        <MobileMenu pathname={pathname} onClose={() => setMobileOpen(false)} isStandalone={isStandalone} />
+      )}
     </header>
   );
 }
 
-function TopLevelLink({ item }) {
+// Bungkus href sebuah item eksternal: ".../buka/<id>" (viewer internal) saat
+// standalone, atau URL asli saat website biasa di browser.
+function externalHref(item, isStandalone) {
+  return isStandalone ? `/buka/${item.id}` : item.url;
+}
+
+function TopLevelLink({ item, isStandalone }) {
   if (isExternalLink(item)) {
+    if (isStandalone) {
+      return (
+        <NavLink
+          to={externalHref(item, true)}
+          className={({ isActive }) =>
+            [
+              "flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+              isActive ? "bg-ink-700 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-ink-900",
+            ].join(" ")
+          }
+        >
+          {item.label}
+        </NavLink>
+      );
+    }
     return (
       <a
         href={item.url}
@@ -114,7 +150,7 @@ function TopLevelLink({ item }) {
   );
 }
 
-function DesktopDropdown({ group, isActiveGroup }) {
+function DesktopDropdown({ group, isActiveGroup, isStandalone }) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
 
@@ -144,7 +180,12 @@ function DesktopDropdown({ group, isActiveGroup }) {
         <div className="absolute left-0 top-full w-72 pt-2">
           <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-card">
             {group.submenu.map((item) => (
-              <DropdownRow key={item.id} item={item} onNavigate={() => setOpen(false)} />
+              <DropdownRow
+                key={item.id}
+                item={item}
+                onNavigate={() => setOpen(false)}
+                isStandalone={isStandalone}
+              />
             ))}
           </div>
         </div>
@@ -153,7 +194,7 @@ function DesktopDropdown({ group, isActiveGroup }) {
   );
 }
 
-function DropdownRow({ item, onNavigate }) {
+function DropdownRow({ item, onNavigate, isStandalone }) {
   const Icon = item.icon;
 
   if (hasChildren(item)) {
@@ -165,7 +206,7 @@ function DropdownRow({ item, onNavigate }) {
         </p>
         <div className="ml-2 space-y-0.5 border-l border-slate-100 pl-2">
           {item.children.map((child) => (
-            <DropdownRow key={child.id} item={child} onNavigate={onNavigate} />
+            <DropdownRow key={child.id} item={child} onNavigate={onNavigate} isStandalone={isStandalone} />
           ))}
         </div>
       </div>
@@ -173,6 +214,23 @@ function DropdownRow({ item, onNavigate }) {
   }
 
   if (isExternalLink(item)) {
+    if (isStandalone) {
+      return (
+        <NavLink
+          to={externalHref(item, true)}
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            [
+              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+              isActive ? "bg-ink-700/10 font-medium text-ink-700" : "text-slate-600 hover:bg-slate-50 hover:text-ink-900",
+            ].join(" ")
+          }
+        >
+          <Icon size={16} className="shrink-0 text-ink-500" />
+          <span className="truncate">{item.label}</span>
+        </NavLink>
+      );
+    }
     return (
       <a
         href={item.url}
@@ -205,7 +263,7 @@ function DropdownRow({ item, onNavigate }) {
   );
 }
 
-function MobileMenu({ pathname, onClose }) {
+function MobileMenu({ pathname, onClose, isStandalone }) {
   const beranda = topLevel.find((item) => item.id === "beranda");
   const topLevelSisanya = topLevel.filter((item) => item.id !== "beranda");
 
@@ -271,6 +329,7 @@ function MobileMenu({ pathname, onClose }) {
                     onNavigate={onClose}
                     isSubOpen={openSub.has(item.id)}
                     onToggleSub={() => toggleSub(item.id)}
+                    isStandalone={isStandalone}
                   />
                 ))}
               </div>
@@ -281,17 +340,33 @@ function MobileMenu({ pathname, onClose }) {
 
       {topLevelSisanya.map((item) =>
         isExternalLink(item) ? (
-          <a
-            key={item.id}
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
-            className="mt-1 flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            {item.label}
-            <ArrowUpRight size={13} className="text-slate-400" />
-          </a>
+          isStandalone ? (
+            <NavLink
+              key={item.id}
+              to={externalHref(item, true)}
+              onClick={onClose}
+              className={({ isActive }) =>
+                [
+                  "mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium",
+                  isActive ? "bg-ink-700 text-white" : "text-slate-700 hover:bg-slate-50",
+                ].join(" ")
+              }
+            >
+              {item.label}
+            </NavLink>
+          ) : (
+            <a
+              key={item.id}
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={onClose}
+              className="mt-1 flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              {item.label}
+              <ArrowUpRight size={13} className="text-slate-400" />
+            </a>
+          )
         ) : (
           <NavLink
             key={item.id}
@@ -313,7 +388,7 @@ function MobileMenu({ pathname, onClose }) {
   );
 }
 
-function MobileRow({ item, onNavigate, isSubOpen, onToggleSub }) {
+function MobileRow({ item, onNavigate, isSubOpen, onToggleSub, isStandalone }) {
   const Icon = item.icon;
 
   if (hasChildren(item)) {
@@ -330,7 +405,14 @@ function MobileRow({ item, onNavigate, isSubOpen, onToggleSub }) {
         {isSubOpen && (
           <div className="ml-3 space-y-0.5 border-l border-slate-100 pl-3">
             {item.children.map((child) => (
-              <MobileRow key={child.id} item={child} onNavigate={onNavigate} isSubOpen={false} onToggleSub={() => {}} />
+              <MobileRow
+                key={child.id}
+                item={child}
+                onNavigate={onNavigate}
+                isSubOpen={false}
+                onToggleSub={() => {}}
+                isStandalone={isStandalone}
+              />
             ))}
           </div>
         )}
@@ -339,6 +421,23 @@ function MobileRow({ item, onNavigate, isSubOpen, onToggleSub }) {
   }
 
   if (isExternalLink(item)) {
+    if (isStandalone) {
+      return (
+        <NavLink
+          to={externalHref(item, true)}
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            [
+              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm",
+              isActive ? "bg-ink-700/10 font-medium text-ink-700" : "text-slate-600 hover:bg-slate-50",
+            ].join(" ")
+          }
+        >
+          <Icon size={15} className="shrink-0" />
+          <span className="truncate">{item.label}</span>
+        </NavLink>
+      );
+    }
     return (
       <a
         href={item.url}
