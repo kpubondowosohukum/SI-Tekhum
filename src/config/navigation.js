@@ -71,7 +71,7 @@ export const topLevel = [
     // Menu mandiri tanpa dropdown — klik langsung buka Apps Script,
     // sesuai permintaan "Laporan" jadi menu tunggal (bukan grup submenu).
     id: "laporan",
-    label: "Laporan",
+    label: "Laporan Kegiatan",
     icon: FileSpreadsheet,
     description: "Akses cepat ke laporan konsolidasi tahun berjalan.",
     external: true,
@@ -263,7 +263,7 @@ export const navigationGroups = [
         label: "Laporan Kinerja",
         icon: FileText,
         external: true,
-        url: "https://script.google.com/macros/s/AKfycbymKKzYGt7-19NnZMUWvzhTVwUFxgENRCGURasNjXyMjJ6Hep7EqIREeQMD3bpXUbDq2A/exec",
+        url: "https://script.google.com/macros/s/AKfycbzIIgcoEV3W3lTacYTvmXqFycSoNwEtBI5nywI-4hrNwenLZDzO3opV_asvACb_pN8/exec",
       },
     ],
   },
