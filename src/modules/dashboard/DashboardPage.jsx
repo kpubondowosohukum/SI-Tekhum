@@ -2,10 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { navigationGroups, topLevel, findItemById, goToItem } from "../../config/navigation.js";
 import HeroCarousel from "../../components/ui/HeroCarousel.jsx";
 import MenuOverviewCard from "../../components/ui/MenuOverviewCard.jsx";
-import CatatanRapatSection from "./CatatanRapatSection.jsx";
 
 /**
- * Beranda SI-Tekhum — hero banner carousel + 4 kartu "Menu Utama" + catatan
+ * Beranda SI-Tekhum — hero banner carousel + 4 kartu "Menu Utama" 
  * rapat.
  *
  * PENTING: halaman ini TIDAK menyimpan URL/label sendiri. Data hero carousel
